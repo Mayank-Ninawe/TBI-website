@@ -41,6 +41,7 @@ import {
   Heart
 } from "lucide-react";
 import { useState } from "react";
+import { SubmissionActions } from "@/app/admin/dashboard/components/SubmissionActions";
 
 interface OffCampusSubmissionCardProps {
   submission: Submission;

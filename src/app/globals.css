@@ -201,3 +201,25 @@ main {
   backdrop-filter: blur(12px) saturate(180%);
   -webkit-backdrop-filter: blur(12px) saturate(180%);
 }
+
+/* Custom Sidebar Scrollbar Styling */
+.sidebar-scroll, .custom-sidebar-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: #bcd3fa #f5f7fa;
+}
+.sidebar-scroll::-webkit-scrollbar, .custom-sidebar-scroll::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+.sidebar-scroll::-webkit-scrollbar-track, .custom-sidebar-scroll::-webkit-scrollbar-track {
+  background: #f5f7fa;
+  border-radius: 8px;
+}
+.sidebar-scroll::-webkit-scrollbar-thumb, .custom-sidebar-scroll::-webkit-scrollbar-thumb {
+  background: #bcd3fa;
+  border-radius: 8px;
+  border: 2px solid #f5f7fa;
+}
+.sidebar-scroll::-webkit-scrollbar-thumb:hover, .custom-sidebar-scroll::-webkit-scrollbar-thumb:hover {
+  background: #90b4e8;
+}

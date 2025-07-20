@@ -89,11 +89,11 @@ export const DesktopSidebar = ({
     <>
       <motion.div
         className={cn(
-          "h-full px-4 py-4 hidden md:flex md:flex-col bg-neutral-900/90 backdrop-blur-sm border-r border-neutral-800 w-[300px] shrink-0 overflow-x-hidden",
+          "h-full px-4 py-4 hidden md:flex md:flex-col bg-white border-r border-gray-200 w-[279px] shrink-0 overflow-x-hidden",
           className
         )}
         animate={{
-          width: animate ? (open ? "300px" : "80px") : "300px",
+          width: animate ? (open ? "279px" : "99px") : "279px",
         }}
         onMouseEnter={() => setOpen(true)}
         onMouseLeave={() => setOpen(false)}
@@ -165,25 +165,43 @@ export const SidebarLink = ({
   className?: string;
 }) => {
   const { open, animate } = useSidebar();
+  // Determine if this is the active link
+  const isActive = typeof window !== 'undefined' && window.location.pathname === link.href;
+  // Special case for logout
+  const isLogout = link.label && link.label.toLowerCase().includes('logout');
   return (
     <a
       href={link.href}
       className={cn(
-        "flex items-center justify-start gap-3 group/sidebar py-3 px-3 rounded-lg hover:bg-neutral-800/50 transition-colors duration-200",
+        'flex items-center justify-start gap-3 group/sidebar py-3 px-3 rounded-lg transition-colors duration-200',
+        isActive
+          ? 'bg-blue-50 text-blue-700 border border-blue-200 font-semibold'
+          : isLogout
+            ? 'text-red-600 hover:bg-red-50 hover:text-red-700 font-semibold'
+            : 'text-gray-700 hover:bg-gray-100 hover:text-blue-700',
         className
       )}
       {...props}
     >
-      <span className="text-indigo-400 group-hover/sidebar:text-indigo-300 transition-colors">
+      <span className={cn(
+        'flex items-center justify-center w-10 h-10 rounded-lg transition-all duration-200 flex-shrink-0',
+        isActive
+          ? 'bg-blue-100 text-blue-600'
+          : isLogout
+            ? 'bg-red-50 text-red-600'
+            : 'bg-gray-100 text-gray-600 group-hover:bg-blue-50 group-hover:text-blue-700'
+      )}>
         {link.icon}
       </span>
-
       <motion.span
         animate={{
-          display: animate ? (open ? "inline-block" : "none") : "inline-block",
+          display: animate ? 'inline-block' : 'none',
           opacity: animate ? (open ? 1 : 0) : 1,
         }}
-        className="text-neutral-200 text-sm group-hover/sidebar:translate-x-1 transition duration-150 whitespace-pre inline-block !p-0 !m-0"
+        className={cn(
+          'text-sm whitespace-pre inline-block !p-0 !m-0',
+          isActive ? 'text-blue-700' : isLogout ? 'text-red-600' : 'text-gray-700'
+        )}
       >
         {link.label}
       </motion.span>

@@ -29,7 +29,8 @@ function AdminSubmissionsContent() {
   const [isImporting, setIsImporting] = useState(false);
   const [selectedSubmission, setSelectedSubmission] = useState<Submission | null>(null);
   const searchParams = useSearchParams();
-  const activeTab = searchParams.get('tab') === 'off-campus' ? 'off-campus' : 'on-campus';
+  const [activeTab, setActiveTab] = useState<'on-campus' | 'off-campus'>(searchParams.get('tab') === 'off-campus' ? 'off-campus' : 'on-campus');
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   const fetchSubmissions = async () => {
     setIsLoading(true);
@@ -102,6 +103,11 @@ function AdminSubmissionsContent() {
 
   const handleViewDetails = (submission: Submission) => {
     setSelectedSubmission(submission);
+    setIsModalOpen(true);
+  };
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+    setSelectedSubmission(null);
   };
 
   const SubmissionsGrid = ({ submissions, type }: { submissions: Submission[], type: 'on-campus' | 'off-campus' }) => {
@@ -267,10 +273,10 @@ function AdminSubmissionsContent() {
               </button>
             </div>
             {activeTab === 'on-campus' && (
-              <SubmissionsOverview type="on-campus" />
+              <SubmissionsGrid submissions={onCampusSubmissions} type="on-campus" />
             )}
             {activeTab === 'off-campus' && (
-              <SubmissionsOverview type="off-campus" />
+              <SubmissionsGrid submissions={offCampusSubmissions} type="off-campus" />
             )}
           </div>
         </div>

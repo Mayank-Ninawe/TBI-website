@@ -163,9 +163,9 @@ function AdminLayoutContent({
                         }
                       }}
                     >
-                      {/* Active indicator */}
+                      {/* Active indicator: simple blue vertical bar */}
                       {pathname === item.href && (
-                        <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 bg-blue-600 rounded-r-full"></div>
+                        <div className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-6 bg-blue-500 rounded-full"></div>
                       )}
                       
                       <div className={cn(
@@ -201,11 +201,11 @@ function AdminLayoutContent({
             <div className="mt-4">
               <SidebarLink
                 link={{
-                  href: "/",
-                  label: "Back to Home",
-                  icon: <Home className="h-5 w-5" />
+                  href: "/logout", // Or your logout route
+                  label: "Logout",
+                  icon: <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M16 17l5-5-5-5M21 12H9M13 7V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2v-2"/></svg>
                 }}
-                className="text-gray-600 hover:text-gray-800"
+                className="text-red-600 hover:bg-red-50 hover:text-red-700 font-semibold"
               />
             </div>
           </DesktopSidebar>

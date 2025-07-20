@@ -10,7 +10,7 @@ service cloud.firestore {
     // Rules for contactSubmissions (User Onboarding & Application Data)
     match /contactSubmissions/{submissionId} {
       // Allow anyone to read all submissions (for admin dashboard)
-      allow read: if true; 
+      allow read: if request.auth != null; 
       
       // Allow anyone to create new submissions (for application forms)
       allow create: if true; 
@@ -21,7 +21,7 @@ service cloud.firestore {
 
     // Rules for offCampusApplications
     match /offCampusApplications/{submissionId} {
-      allow read: if true;
+      allow read: if request.auth != null;
       allow create: if true;
       // This update rule is intentionally permissive for development.
       // In production, this should be restricted to an admin role.
@@ -177,5 +177,17 @@ service cloud.firestore {
     }
 
     // Add other rules for other collections if needed
+    match /analysisUploads/{docId} {
+      allow read, write: if true;
+    }
+
+    match /analysis/{docId} {
+      allow read, write: if true;
+    }
+
+    // Catch-all rule for testing: allow all reads and writes
+    match /{document=**} {
+      allow read, write: if true;
+    }
   }
 }
