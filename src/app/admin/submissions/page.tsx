@@ -28,9 +28,19 @@ function AdminSubmissionsContent() {
   const [processingActionState, setProcessingActionState] = useState<ProcessingActionState | null>(null);
   const [isImporting, setIsImporting] = useState(false);
   const [selectedSubmission, setSelectedSubmission] = useState<Submission | null>(null);
-  const searchParams = useSearchParams();
-  const [activeTab, setActiveTab] = useState<'on-campus' | 'off-campus'>(searchParams.get('tab') === 'off-campus' ? 'off-campus' : 'on-campus');
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState<'on-campus' | 'off-campus'>('on-campus');
+  const searchParams = useSearchParams();
+
+  // Initialize activeTab from URL params
+  useEffect(() => {
+    const tabFromUrl = searchParams.get('tab');
+    if (tabFromUrl === 'off-campus') {
+      setActiveTab('off-campus');
+    } else {
+      setActiveTab('on-campus');
+    }
+  }, [searchParams]);
 
   const fetchSubmissions = async () => {
     setIsLoading(true);

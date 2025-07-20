@@ -5,6 +5,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Submission, CampusStatus } from "@/types/Submission";
+import { SubmissionActions } from "@/app/admin/dashboard/components/SubmissionActions";
 import { format } from 'date-fns';
 import { Timestamp } from 'firebase/firestore';
 import { 
@@ -41,7 +42,6 @@ import {
   Heart
 } from "lucide-react";
 import { useState } from "react";
-import { SubmissionActions } from "@/app/admin/dashboard/components/SubmissionActions";
 
 interface OffCampusSubmissionCardProps {
   submission: Submission;
