@@ -1,3 +1,4 @@
+
 'use server';
 
 import { 
@@ -10,22 +11,24 @@ import { google } from 'googleapis';
 import { JWT } from 'google-auth-library';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
+import type { Submission } from '@/types/Submission';
 
 export async function processApplicationAction(
   submissionId: string, 
   action: 'accept' | 'reject',
   applicantName: string,
-  applicantEmail: string
+  applicantEmail: string,
+  campusStatus: Submission['campusStatus']
 ): Promise<ProcessApplicationOutput> {
   try {
-    const input: ProcessApplicationInput = { submissionId, action, applicantName, applicantEmail };
+    const input: ProcessApplicationInput = { submissionId, action, applicantName, applicantEmail, campusStatus };
     const result = await processApplication(input);
     
-    // Log the full result from the flow to the server console
     console.log("[AdminActions] Result from processApplication flow:", JSON.stringify(result, null, 2));
 
     if (result.status === 'success') {
-      revalidatePath('/admin/dashboard'); // Revalidate to show updated status
+      revalidatePath('/admin/dashboard');
+      revalidatePath('/admin/submissions');
     }
     return result;
   } catch (error: any) {
@@ -66,8 +69,8 @@ export async function importOffCampusSubmissionsFromSheet(): Promise<ImportSubmi
       auth: jwtClient,
     });
 
-    const spreadsheetId = '1wPgY5n0Ytj0GjnTIWqktGbnG3OEEK20QLRxihxj8DuI'; // Your spreadsheet ID
-    const range = 'Sheet1!A:H'; // Assuming data is in Sheet1, columns A to H
+    const spreadsheetId = '1wPgY5n0Ytj0GjnTIWqktGbnG3OEEK20QLRxihxj8DuI';
+    const range = 'Sheet1!A:Z'; // Assuming data is on Sheet1
 
     const response = await sheets.spreadsheets.values.get({
       spreadsheetId,
@@ -76,50 +79,61 @@ export async function importOffCampusSubmissionsFromSheet(): Promise<ImportSubmi
 
     const rows = response.data.values;
     if (!rows || rows.length === 0) {
-      return { success: true, message: "No data found in the spreadsheet.", importedCount: 0 };
+      return { success: false, message: 'No data found in the spreadsheet.' };
     }
 
-    // Assuming the first row is headers, skip it
-    const dataRows = rows.slice(1);
-
+    const dataRows = rows.slice(1); // Skip header row
     let importedCount = 0;
     const importErrors: any[] = [];
 
-    for (const row of dataRows) {
+    for (let i = 0; i < dataRows.length; i++) {
+      const row = dataRows[i];
       try {
-        const startupName = row[0] || 'Unknown Startup';
-        const contactInfo = row[7] || '';
-        const businessCategory = row[6] || 'General';
-
-        // Attempt to extract email from contactInfo, simple regex for demonstration
-        const emailMatch = contactInfo.match(/([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,6})/);
-        const email = emailMatch ? emailMatch[0] : 'unknown@example.com';
-
         const submissionData = {
-          name: startupName, // Using startup name as applicant name for now
-          email: email,
-          companyName: startupName,
-          idea: `Exploring ${businessCategory} ideas related to ${startupName}.`,
-          campusStatus: "off-campus",
+          fullName: row[1] || 'Unknown Name',
+          phone: row[2] || '',
+          natureOfInquiry: row[3] || 'General',
+          companyName: row[4] || (row[1] ? `${row[1]}'s Startup` : 'Startup'),
+          companyEmail: row[5] || '',
+          founderNames: row[6] || row[1] || 'Unknown Founder',
+          founderBio: row[7] || '',
+          linkedinUrl: row[8] || '',
+          teamInfo: row[9] || '',
+          startupIdea: row[10] || '',
+          targetAudience: row[11] || '',
+          problemSolving: row[12] || '',
+          uniqueness: row[13] || '',
+          developmentStage: row[14] || '',
+          campusStatus: "off-campus" as const,
+          email: row[5] || extractEmailFromText(row[2] || ''),
+          name: row[1] || 'Unknown Name',
+          idea: row[10] || '',
           submittedAt: serverTimestamp(),
-          status: "pending",
+          status: "pending" as const,
+          sourceRow: i + 2,
+          importedAt: serverTimestamp(),
+          formSubmittedAt: row[0] || '',
         };
-
-        await addDoc(collection(db, "contactSubmissions"), submissionData);
+        
+        if (!submissionData.email) {
+          throw new Error('Could not determine email for row.');
+        }
+        
+        await addDoc(collection(db, "offCampusApplications"), submissionData);
         importedCount++;
-      } catch (rowError) {
-        console.error("Error processing row:", row, rowError);
-        importErrors.push({ row, error: rowError.message });
+      } catch (rowError: any) {
+        console.error(`Error processing row ${i + 2}:`, row, rowError);
+        importErrors.push({ rowNumber: i + 2, row, error: rowError.message });
       }
     }
 
     revalidatePath('/admin/submissions');
-    revalidatePath('/admin/dashboard'); // Revalidate dashboard as well, as it shows all submissions
+    revalidatePath('/admin/dashboard');
 
     if (importErrors.length > 0) {
       return {
-        success: false,
-        message: `Import completed with ${importedCount} successful imports and ${importErrors.length} errors.`,
+        success: importedCount > 0,
+        message: `Import completed with ${importedCount} successes and ${importErrors.length} errors.`,
         importedCount,
         errors: importErrors,
       };
@@ -129,15 +143,13 @@ export async function importOffCampusSubmissionsFromSheet(): Promise<ImportSubmi
 
   } catch (error: any) {
     console.error("Error in importOffCampusSubmissionsFromSheet: ", error);
-    let errorMessage = "Failed to import submissions.";
-    if (error.message) {
-      errorMessage = error.message;
-    }
-    return { success: false, message: errorMessage };
+    return { success: false, message: `Failed to import submissions: ${error.message || 'Unknown error'}.` };
   }
 }
 
-// Placeholder for future actions
-// export async function updateStartupAction(startupId: string, values: Partial<StartupFormValues>): Promise<any> {}
-// export async function deleteStartupAction(startupId: string): Promise<any> {}
-
+function extractEmailFromText(text: string): string {
+  if (!text) return '';
+  const emailRegex = /([a-zA-Z0-9._-]+@[a-zA-Z0-9._-]+\.[a-zA-Z0-9_-]+)/gi;
+  const matches = text.match(emailRegex);
+  return matches ? matches[0] : '';
+}

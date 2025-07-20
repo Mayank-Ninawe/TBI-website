@@ -4,16 +4,18 @@
  * @fileOverview Flow to process application submissions (accept or reject).
  *
  * - processApplication - Handles accepting or rejecting an application,
- *   updating Firestore, and preparing a notification email.
+ *   updating Firestore, creating Firebase Auth users, and preparing a notification email.
  * - ProcessApplicationInput - Input type for the flow.
  * - ProcessApplicationOutput - Output type for the flow.
  */
 
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
-import { db } from '@/lib/firebase';
-import { doc, updateDoc, serverTimestamp, getDoc } from 'firebase/firestore';
+import { db, auth } from '@/lib/firebase';
+import { doc, updateDoc, serverTimestamp, getDoc, setDoc, collection, addDoc } from 'firebase/firestore';
+import { createUserWithEmailAndPassword, signOut } from 'firebase/auth';
 import { Resend } from 'resend';
+import { Submission } from '@/types/Submission';
 
 // Helper function to generate a simple random string
 const generateRandomString = (length: number = 8) => {
@@ -25,6 +27,7 @@ const ProcessApplicationInputSchema = z.object({
   action: z.enum(['accept', 'reject']).describe('The action to take: "accept" or "reject".'),
   applicantName: z.string().describe("The name of the applicant."),
   applicantEmail: z.string().email().describe("The email of the applicant to send notification to."),
+  campusStatus: z.enum(['campus', 'off-campus']).optional().describe('The campus status of the applicant.'),
 });
 export type ProcessApplicationInput = z.infer<typeof ProcessApplicationInputSchema>;
 
@@ -38,7 +41,7 @@ const ProcessApplicationOutputSchema = z.object({
     sent: z.boolean(),
     sendError: z.string().optional(),
   }).optional().describe('Details of the email operation. Optional if email sending is not applicable.'),
-  temporaryUserId: z.string().optional().describe('Generated temporary user ID if accepted.'),
+  firebaseUid: z.string().optional().describe('Firebase Auth UID if user was created successfully.'),
   temporaryPassword: z.string().optional().describe('Generated temporary password if accepted.'),
 });
 export type ProcessApplicationOutput = z.infer<typeof ProcessApplicationOutputSchema>;
@@ -62,19 +65,24 @@ async function sendEmailNotification(to: string, subject: string, body: string):
   const resend = new Resend(process.env.RESEND_API_KEY);
 
   try {
-    // IMPORTANT: For best deliverability, replace 'onboarding@resend.dev' 
-    // with an email address from a domain you have verified with Resend.
-    // e.g., 'Your Name <notifications@yourverifieddomain.com>'
+    const fromEmail = process.env.RESEND_FROM_EMAIL || 'TBI Platform <onboarding@resend.dev>';
+    
+    console.log("Attempting to send email:");
+    console.log("From:", fromEmail);
+    console.log("To:", to);
+    console.log("Subject:", subject);
+    
     const { data, error } = await resend.emails.send({
-      from: 'RCEOM-TBI <onboarding@resend.dev>', 
+      from: fromEmail, 
       to: [to],
       subject: subject,
-      text: body, // For HTML emails, use 'html: "<strong>your html content</strong>"'
+      text: body,
     });
 
     if (error) {
       console.error("Resend API Error:", error);
-      return { success: false, message: `Failed to send email via Resend: ${error.message}`, error: JSON.stringify(error) };
+      const errorMessage = error.message || error.name || JSON.stringify(error) || 'Unknown Resend API error';
+      return { success: false, message: `Failed to send email via Resend: ${errorMessage}`, error: JSON.stringify(error) };
     }
 
     console.log("Email sent successfully via Resend. ID:", data?.id);
@@ -93,17 +101,19 @@ const processApplicationFlow = ai.defineFlow(
     outputSchema: ProcessApplicationOutputSchema,
   },
   async (input) => {
-    const { submissionId, action, applicantName, applicantEmail } = input;
-    const submissionRef = doc(db, 'contactSubmissions', submissionId);
+    const { submissionId, action, applicantName, applicantEmail, campusStatus } = input;
+    
+    const collectionName = campusStatus === 'off-campus' ? 'offCampusApplications' : 'contactSubmissions';
+    const submissionRef = doc(db, collectionName, submissionId);
 
     try {
       const submissionSnap = await getDoc(submissionRef);
       if (!submissionSnap.exists()) {
-        return { status: 'error', message: `Submission with ID ${submissionId} not found.` };
+        return { status: 'error' as const, message: `Submission with ID ${submissionId} not found in ${collectionName}.` };
       }
-      const submissionData = submissionSnap.data();
+      const submissionData = submissionSnap.data() as Submission;
       if (submissionData.status !== 'pending') {
-         return { status: 'error', message: `Submission ${submissionId} has already been processed (status: ${submissionData.status}).` };
+         return { status: 'error' as const, message: `Submission ${submissionId} has already been processed (status: ${submissionData.status}).` };
       }
 
       let emailSubject = '';
@@ -115,16 +125,46 @@ const processApplicationFlow = ai.defineFlow(
       let temporaryPassword: string | undefined = undefined;
 
       if (action === 'accept') {
-        temporaryUserId = generateRandomString(8);
         temporaryPassword = generateRandomString(10);
         
-        updateData.status = 'accepted';
-        updateData.temporaryUserId = temporaryUserId;
-        updateData.temporaryPassword = temporaryPassword;
+        try {
+          const userCredential = await createUserWithEmailAndPassword(auth, applicantEmail, temporaryPassword);
+          const firebaseUser = userCredential.user;
+          await signOut(auth);
+          
+          const userDoc = {
+            email: applicantEmail,
+            name: applicantName,
+            uid: firebaseUser.uid,
+            status: 'active',
+            role: 'user',
+            submissionId: submissionId,
+            onboardingCompleted: false,
+            onboardingProgress: {
+              passwordChanged: false,
+              profileCompleted: false,
+              notificationsConfigured: false,
+              completed: false,
+            },
+            notificationPreferences: { emailNotifications: true },
+            createdAt: serverTimestamp(),
+            updatedAt: serverTimestamp(),
+          };
+          
+          await setDoc(doc(db, 'users', firebaseUser.uid), userDoc);
+          
+          updateData.status = 'accepted';
+          updateData.firebaseUid = firebaseUser.uid;
 
-        emailSubject = 'Congratulations! Your RCEOM-TBI Application has been Accepted!';
-        emailBody = `Dear ${applicantName},\n\nWe are thrilled to inform you that your application to RCEOM-TBI has been accepted!\n\nWe were very impressed with your idea and believe in its potential. Here are your temporary login credentials to access our portal (feature coming soon):\nUser ID: ${temporaryUserId}\nPassword: ${temporaryPassword}\n\nPlease keep these safe. We will be in touch shortly with the next steps.\n\nWelcome to RCEOM-TBI!\n\nBest regards,\nThe RCEOM-TBI Team`;
-
+          emailSubject = 'Congratulations! Your RCEOM-TBI Application has been Accepted!';
+          emailBody = `Dear ${applicantName},\n\nWe are thrilled to inform you that your application to RCEOM-TBI has been accepted!\n\nWe were very impressed with your idea and believe in its potential. Here are your login credentials to access our portal:\n\nEmail: ${applicantEmail}\nTemporary Password: ${temporaryPassword}\n\nPlease keep these safe and change your password after your first login. We will be in touch shortly with the next steps.\n\nWelcome to RCEOM-TBI!\n\nBest regards,\nThe RCEOM-TBI Team`;
+          
+          temporaryUserId = firebaseUser.uid;
+          
+        } catch (authError: any) {
+          console.error('Error creating Firebase Auth user:', authError);
+          return { status: 'error' as const, message: `Failed to create user account: ${authError.message}` };
+        }
       } else { // action === 'reject'
         updateData.status = 'rejected';
         emailSubject = 'Update on Your RCEOM-TBI Application';
@@ -136,7 +176,7 @@ const processApplicationFlow = ai.defineFlow(
       const emailResult = await sendEmailNotification(applicantEmail, emailSubject, emailBody);
 
       return {
-        status: 'success',
+        status: 'success' as const,
         message: `Application ${action === 'accept' ? 'accepted' : 'rejected'} successfully. ${emailResult.message}`,
         email: {
           to: applicantEmail,
@@ -145,14 +185,14 @@ const processApplicationFlow = ai.defineFlow(
           sent: emailResult.success,
           sendError: emailResult.error,
         },
-        temporaryUserId: temporaryUserId,
+        firebaseUid: temporaryUserId,
         temporaryPassword: temporaryPassword,
       };
 
     } catch (error: any) {
       console.error('Error processing application:', error);
       return {
-        status: 'error',
+        status: 'error' as const,
         message: `Failed to process application: ${error.message}`,
       };
     }

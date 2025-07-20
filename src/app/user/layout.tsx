@@ -22,6 +22,7 @@ import {
   Menu,
   User,
 } from "lucide-react";
+import NotificationsPanel from "@/components/ui/notifications-panel";
 import { InnoNexusLogo } from "@/components/icons/innnexus-logo";
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
@@ -29,6 +30,8 @@ import { OnboardingPopup } from "@/components/ui/onboarding-popup";
 import { useOnboarding } from "@/hooks/useOnboarding";
 import { UserProvider, useUser } from "@/contexts/user-context";
 import { clearUserSession } from "@/lib/client-utils";
+// import { logoutUser } from "@/app/actions/auth-actions";
+import { logoutUser } from "@/app/actions/auth-actions";
 
 interface NavItem {
   href: string;
@@ -41,11 +44,12 @@ function UserLayoutContent({
   children,
 }: {
   children: React.ReactNode;
-}) {  const pathname = usePathname();
+}) {
+  const pathname = usePathname();
   const router = useRouter(); // For logout
-  const { open, setOpen } = useSidebar();  const { showOnboarding, completeOnboarding } = useOnboarding();
+  const { open, setOpen } = useSidebar(); const { showOnboarding, completeOnboarding } = useOnboarding();
   const { user } = useUser();
-  
+
   React.useEffect(() => {
     if (typeof window !== 'undefined' && window.innerWidth < 768) {
       setOpen(false);
@@ -66,29 +70,46 @@ function UserLayoutContent({
       disabled: false
     },
     {
+      href: "/user/mentor-requests",
+      label: "Mentor Requests",
+      icon: <Users className="h-5 w-5" />,
+      disabled: false
+    },
+    {
       href: "/user/events",
       label: "Events",
       icon: <CalendarDays className="h-5 w-5" />,
       disabled: false
-    },    {
+    }, {
       href: "/user/settings",
       label: "Profile",
       icon: <User className="h-5 w-5" />,
       disabled: false // Now functional
     },
   ];
-  const handleLogout = () => {
-    // Clear all user session data including onboarding status
-    clearUserSession();
-    
-    // For temporary credentials, logout is effectively redirecting
-    // More complex logic would be needed for actual session invalidation
-    if (typeof window !== 'undefined' && window.innerWidth < 768) {
-      setOpen(false);
+  const handleLogout = async () => {
+    try {
+      // Sign out from Firebase Auth
+      await logoutUser();
+
+      // Clear local session data
+      clearUserSession();
+
+      // Close sidebar if on mobile
+      if (typeof window !== 'undefined' && window.innerWidth < 768) {
+        setOpen(false);
+      }
+
+      // Redirect to login
+      router.push('/login');
+    } catch (error) {
+      console.error('Error during logout:', error);
+      // Even if Firebase logout fails, still redirect
+      clearUserSession();
+      router.push('/login');
     }
-    router.push('/login');
   };
-  
+
   const handleMobileLinkClick = () => {
     if (typeof window !== 'undefined' && window.innerWidth < 768) {
       setOpen(false);
@@ -186,7 +207,7 @@ function UserLayoutContent({
                   'group/sidebar'
                 )}
               >
-                 <span className="text-indigo-400 group-hover/sidebar:text-indigo-300 transition-colors">
+                <span className="text-indigo-400 group-hover/sidebar:text-indigo-300 transition-colors">
                   <Home className="h-5 w-5" />
                 </span>
                 <motion.span
@@ -208,38 +229,38 @@ function UserLayoutContent({
               <div className="flex-1 overflow-y-auto py-4">
                 <div className="space-y-1 px-2">
                   {navItems.map((item) => (
-                     <div key={`mobile-${item.href}`} className="group relative" title={item.disabled ? 'Coming soon' : ''}>
-                        <Link
-                          href={item.disabled ? '#' : item.href}
-                          className={cn(
-                            "flex items-center px-3 py-3 rounded-lg text-base font-medium transition-colors cursor-pointer",
-                            pathname === item.href
-                              ? 'bg-indigo-900/50 text-white'
-                              : 'text-neutral-300 hover:bg-neutral-800/50 hover:text-white',
-                            item.disabled && 'opacity-50 hover:bg-transparent hover:text-neutral-300 cursor-not-allowed'
-                          )}
-                          onClick={(e) => {
-                            if (item.disabled) e.preventDefault();
-                            handleMobileLinkClick();
-                          }}
-                        >
-                          <span className="flex-shrink-0 mr-3">
-                            {item.icon}
-                          </span>
-                          <span>{item.label}</span>
-                        </Link>
-                      </div>
+                    <div key={`mobile-${item.href}`} className="group relative" title={item.disabled ? 'Coming soon' : ''}>
+                      <Link
+                        href={item.disabled ? '#' : item.href}
+                        className={cn(
+                          "flex items-center px-3 py-3 rounded-lg text-base font-medium transition-colors cursor-pointer",
+                          pathname === item.href
+                            ? 'bg-indigo-900/50 text-white'
+                            : 'text-neutral-300 hover:bg-neutral-800/50 hover:text-white',
+                          item.disabled && 'opacity-50 hover:bg-transparent hover:text-neutral-300 cursor-not-allowed'
+                        )}
+                        onClick={(e) => {
+                          if (item.disabled) e.preventDefault();
+                          handleMobileLinkClick();
+                        }}
+                      >
+                        <span className="flex-shrink-0 mr-3">
+                          {item.icon}
+                        </span>
+                        <span>{item.label}</span>
+                      </Link>
+                    </div>
                   ))}
                 </div>
               </div>
               <div className="p-4 border-t border-neutral-800 space-y-2">
-                 <button
-                    onClick={handleLogout}
-                    className="flex items-center px-3 py-2.5 rounded-lg text-base font-medium text-neutral-300 hover:bg-rose-800/50 hover:text-white transition-colors w-full"
-                  >
-                    <LogOut className="h-5 w-5 mr-3 text-rose-400" />
-                    <span>Logout</span>
-                  </button>
+                <button
+                  onClick={handleLogout}
+                  className="flex items-center px-3 py-2.5 rounded-lg text-base font-medium text-neutral-300 hover:bg-rose-800/50 hover:text-white transition-colors w-full"
+                >
+                  <LogOut className="h-5 w-5 mr-3 text-rose-400" />
+                  <span>Logout</span>
+                </button>
                 <Link
                   href="/"
                   className="flex items-center px-3 py-2.5 rounded-lg text-base font-medium text-neutral-300 hover:bg-neutral-800/50 hover:text-white transition-colors"
@@ -272,16 +293,23 @@ function UserLayoutContent({
           </div>
         </header>
 
+        {/* Floating Notifications Panel */}
+        {user?.uid && (
+          <NotificationsPanel userId={user.uid} />
+        )}
+
         {/* Page content */}
         <main className="flex-1 overflow-y-auto p-4 md:p-6 bg-neutral-900/50">
           {children}
         </main>
-      </div>      {/* Onboarding Popup */}
-      <OnboardingPopup 
+      </div>
+
+      {/* Onboarding Popup */}
+      <OnboardingPopup
         isOpen={showOnboarding}
         onClose={completeOnboarding}
         onComplete={completeOnboarding}
-        userIdentifier={user?.identifier}
+        userUid={user?.uid}
       />
     </div>
   );
@@ -294,11 +322,9 @@ export default function UserLayout({
 }) {
   return (
     <SidebarProvider>
-      <UserProvider>
-        <UserLayoutContent>
-          {children}
-        </UserLayoutContent>
-      </UserProvider>
+      <UserLayoutContent>
+        {children}
+      </UserLayoutContent>
     </SidebarProvider>
   );
 }

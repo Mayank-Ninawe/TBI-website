@@ -1,30 +1,26 @@
 
-"use client"; // Add this if not present, for useState
+"use client";
 
-import { useState } from 'react'; // Import useState
+import { useState } from 'react';
 import MainNavbar from '@/components/ui/main-navbar';
 import Footer from '@/components/ui/footer';
 import HeroSection from '@/components/sections/hero-section';
-import AboutSection from '@/components/sections/about-section';
+import FeaturesSection from '@/components/sections/features-section';
+import RcoemAboutSection from '@/components/sections/rcoem-about-section';
+import TeamSection from '@/components/sections/team-section';
 import FeaturedStartupsSection from '@/components/sections/featured-startups-section';
-import ProgramDetailsSection from '@/components/sections/program-details-section';
-import TestimonialsSection from '@/components/sections/testimonials-section';
+import ModernTestimonialsSection from '@/components/sections/modern-testimonials-section';
 import RcoemSplashScreen from '@/components/sections/rcoem-splash-screen';
-// import ContactSection from '@/components/sections/contact-section'; // No longer directly rendered
-import ApplicationFormDialog from '@/components/ui/application-form-dialog'; // Import the new dialog
+import ApplicationFormDialog from '@/components/ui/application-form-dialog';
 
 export default function HomePage() {
   const [isApplicationFormOpen, setIsApplicationFormOpen] = useState(false);
   const [showMainContent, setShowMainContent] = useState(false);
+  
   const handleOpenApplicationForm = () => {
-    // Ensure off-campus users are still handled correctly if they reach here.
-    const campusStatusFromStorage = typeof window !== "undefined" ? localStorage.getItem('applicantCampusStatus') as "campus" | "off-campus" | null : null;
-    if (campusStatusFromStorage === "off-campus") {
-      // This case should ideally be handled before calling this, 
-      // e.g. in HeroSection, but as a fallback:
-      window.location.href = 'https://docs.google.com/forms/d/e/YOUR_FORM_ID_HERE/viewform?usp=sf_link'; // DUMMY LINK
-      return;
-    }
+    // This function now simply opens the unified application form dialog.
+    // The distinction between campus and off-campus is handled by the
+    // CampusStatusDialog and the form submission logic.
     setIsApplicationFormOpen(true);
   };
 
@@ -40,10 +36,11 @@ export default function HomePage() {
           <MainNavbar onApplyClick={handleOpenApplicationForm} />
           <main className="flex-grow">
             <HeroSection onApplyClick={handleOpenApplicationForm} />
-            <AboutSection />
+            <FeaturesSection />
+            <RcoemAboutSection />
+            <TeamSection />
             <FeaturedStartupsSection />
-            <ProgramDetailsSection />
-            <TestimonialsSection />
+            <ModernTestimonialsSection />
           </main>
           <Footer />
           <ApplicationFormDialog 
@@ -59,12 +56,12 @@ export default function HomePage() {
     <div className="flex flex-col min-h-screen bg-background font-poppins">
       <MainNavbar onApplyClick={handleOpenApplicationForm} /> {/* Pass handler to Navbar */}
       <main className="flex-grow">
-        <HeroSection onApplyClick={handleOpenApplicationForm} /> {/* Pass handler to HeroSection */}
-        <AboutSection />
+        <HeroSection onApplyClick={handleOpenApplicationForm} />
+        <FeaturesSection />
+        <RcoemAboutSection />
+        <TeamSection />
         <FeaturedStartupsSection />
-        <ProgramDetailsSection />
-        <TestimonialsSection />
-        {/* ContactSection is no longer rendered here */}
+        <ModernTestimonialsSection />
       </main>
       <Footer />
       <ApplicationFormDialog 

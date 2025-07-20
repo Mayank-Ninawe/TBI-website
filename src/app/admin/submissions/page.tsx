@@ -1,419 +1,326 @@
+
 "use client";
 
-import { useState, useEffect } from 'react';
+import { useEffect, useState, Suspense } from 'react';
+import { Button } from "@/components/ui/button";
+import { FileTextIcon, Loader2, AlertCircle, RefreshCw, UploadCloud, Building, Landmark } from "lucide-react";
 import { db } from '@/lib/firebase';
-import { collection, getDocs, orderBy, query, Timestamp, doc, getDoc, where } from 'firebase/firestore';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
-import { FilterManager } from '@/components/ui/filter-manager';
-import { OnCampusSubmissionCard } from './components/OnCampusSubmissionCard';
-import { SubmissionDetailModal } from './components/SubmissionDetailModal';
+import { collection, getDocs, orderBy, query, Timestamp } from 'firebase/firestore';
+import { useToast } from "@/hooks/use-toast";
+import { processApplicationAction, importOffCampusSubmissionsFromSheet } from '@/app/actions/admin-actions';
+import { OffCampusSubmissionCard } from './components/OffCampusSubmissionCard';
 import { Submission } from '@/types/Submission';
-import { motion } from 'framer-motion';
-import { Settings2, Landmark, Building, RefreshCw, Loader2, AlertCircle, Filter } from 'lucide-react';
-import { useRouter } from 'next/navigation';
-import type { FilterOption } from '@/types/FilterSettings';
-import { Filter as FilterType, FilterCriterion } from '@/types/FilterSettings';
+import { useSearchParams } from 'next/navigation';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import SubmissionDetailModal from './components/SubmissionDetailModal';
 
-export default function SubmissionsPage() {
-  const [submissions, setSubmissions] = useState<Submission[]>([]);
-  const [selectedSubmission, setSelectedSubmission] = useState<Submission | null>(null);
-  const [showFilterManager, setShowFilterManager] = useState(false);
+interface ProcessingActionState {
+  id: string;
+  type: 'accept' | 'reject';
+}
+
+function AdminSubmissionsContent() {
+  const [onCampusSubmissions, setOnCampusSubmissions] = useState<Submission[]>([]);
+  const [offCampusSubmissions, setOffCampusSubmissions] = useState<Submission[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
-  const [activeFilters, setActiveFilters] = useState<FilterType[]>([]);
-  const [filteredSubmissions, setFilteredSubmissions] = useState<Submission[]>([]);
-  const router = useRouter();
+  const { toast } = useToast();
+  const [processingActionState, setProcessingActionState] = useState<ProcessingActionState | null>(null);
+  const [isImporting, setIsImporting] = useState(false);
+  const [selectedSubmission, setSelectedSubmission] = useState<Submission | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState<'on-campus' | 'off-campus'>('on-campus');
+  const searchParams = useSearchParams();
 
-  // Check admin authentication
+  // Initialize activeTab from URL params
   useEffect(() => {
-    const checkAuth = async () => {
-      try {
-        const credsDocRef = doc(db, 'admin_config/main_credentials');
-        await getDoc(credsDocRef);
-        setIsAuthenticated(true);
-      } catch (error) {
-        console.error('Authentication error:', error);
-        setIsAuthenticated(false);
-        router.push('/login');
-      }
-    };
+    const tabFromUrl = searchParams.get('tab');
+    if (tabFromUrl === 'off-campus') {
+      setActiveTab('off-campus');
+    } else {
+      setActiveTab('on-campus');
+    }
+  }, [searchParams]);
 
-    checkAuth();
-  }, [router]);
-
-  // Fetch submissions with user data
   const fetchSubmissions = async () => {
-    if (!isAuthenticated) return;
-    
     setIsLoading(true);
     setError(null);
     try {
-      const submissionsCollection = collection(db, "contactSubmissions");
-      const q = query(submissionsCollection, orderBy("submittedAt", "desc"));
-      const snapshot = await getDocs(q);
-      const fetchedSubmissions: Submission[] = [];
-      
-      for (const docSnap of snapshot.docs) {
-        const data = docSnap.data();
-        // Ensure we have default values for our filter fields
-        data.domain = data.domain || 'other';
-        data.sector = data.sector || 'other';
-        data.developmentStage = data.developmentStage || 'ideation';
-        
-        // Get user profile data if available
-        let userData = {};
-        if (data.email) {
-          const userQuery = query(
-            collection(db, "contactSubmissions"),
-            where("email", "==", data.email),
-            where("status", "==", "accepted")
-          );
-          const userSnapshot = await getDocs(userQuery);
-          if (!userSnapshot.empty) {
-            userData = userSnapshot.docs[0].data();
-          }
-        }
+      const onCampusQuery = query(collection(db, "contactSubmissions"), orderBy("submittedAt", "desc"));
+      const offCampusQuery = query(collection(db, "offCampusApplications"), orderBy("submittedAt", "desc"));
 
-        fetchedSubmissions.push({
-          id: docSnap.id,
-          ...data,
-          ...userData, // Merge user data
-          submittedAt: data.submittedAt instanceof Timestamp ? data.submittedAt.toDate() : new Date(data.submittedAt),
-          status: data.status || "pending",
-          processedByAdminAt: data.processedByAdminAt instanceof Timestamp ? data.processedByAdminAt.toDate() : data.processedByAdminAt ? new Date(data.processedByAdminAt) : undefined,
-        } as Submission);
-      }
-      setSubmissions(fetchedSubmissions);
-    } catch (error: any) {
-      console.error('Error fetching submissions:', error);
-      if (error.code === 'permission-denied') {
-        setError('Access denied. Please check your permissions or try logging in again.');
-        router.push('/login');
-      } else {
-        setError('Failed to load submissions. Please try again.');
-      }
+      const [onCampusSnapshot, offCampusSnapshot] = await Promise.all([
+        getDocs(onCampusQuery),
+        getDocs(offCampusQuery)
+      ]);
+
+      const onCampusData = onCampusSnapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      } as Submission));
+      setOnCampusSubmissions(onCampusData);
+
+      const offCampusData = offCampusSnapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      } as Submission));
+      setOffCampusSubmissions(offCampusData);
+
+    } catch (err: any) {
+      console.error("Error fetching submissions:", err);
+      setError("Failed to load submissions.");
     } finally {
       setIsLoading(false);
     }
   };
 
-  useEffect(() => {
-    if (isAuthenticated) {
-      fetchSubmissions();
+  useEffect(() => { fetchSubmissions(); }, []);
+
+  const handleProcess = async (id: string, action: 'accept' | 'reject', name: string, email: string, campusStatus: Submission['campusStatus']) => {
+    setProcessingActionState({ id, type: action });
+    try {
+      const result = await processApplicationAction(id, action, name, email, campusStatus);
+      if (result.status === 'success') {
+        toast({ title: `Application ${action === 'accept' ? 'Accepted' : 'Rejected'}`, description: result.message });
+        fetchSubmissions();
+      } else {
+        toast({ title: 'Failed', description: result.message, variant: 'destructive' });
+      }
+    } catch (err: any) {
+      console.error(err);
+      toast({ title: 'Error', description: `Could not ${action} application.`, variant: 'destructive' });
+    } finally {
+      setProcessingActionState(null);
     }
-  }, [isAuthenticated]);
+  };
 
-  // Define filter options
-  const filterOptions: FilterOption[] = [
-    {
-      value: 'domain',
-      label: 'Domain',
-      type: 'select',
-      options: [
-        { value: 'all', label: 'All Domains' },
-        { value: 'technology', label: 'Technology' },
-        { value: 'healthcare', label: 'Healthcare' },
-        { value: 'education', label: 'Education' },
-        { value: 'fintech', label: 'Fintech' },
-        { value: 'ecommerce', label: 'E-Commerce' },
-        { value: 'sustainability', label: 'Sustainability' },
-        { value: 'other', label: 'Other' }
-      ]
-    },
-    {
-      value: 'sector',
-      label: 'Sector',
-      type: 'select',
-      options: [
-        { value: 'all', label: 'All Sectors' },
-        { value: 'agriculture', label: 'Agriculture' },
-        { value: 'manufacturing', label: 'Manufacturing' },
-        { value: 'services', label: 'Services' },
-        { value: 'retail', label: 'Retail' },
-        { value: 'energy', label: 'Energy' },
-        { value: 'it', label: 'Information Technology' },
-        { value: 'biotech', label: 'Biotech' },
-        { value: 'other', label: 'Other' }
-      ]
-    },
-    {
-      value: 'developmentStage',
-      label: 'Development Stage',
-      type: 'select',
-      options: [
-        { value: 'all', label: 'All Stages' },
-        { value: 'ideation', label: 'Ideation' },
-        { value: 'prototype', label: 'Prototype' },
-        { value: 'mvp', label: 'MVP' },
-        { value: 'early_traction', label: 'Early Traction' },
-        { value: 'growth', label: 'Growth' },
-        { value: 'scaling', label: 'Scaling' }
-      ]
+  const handleImportOffCampus = async () => {
+    setIsImporting(true);
+    try {
+      const result = await importOffCampusSubmissionsFromSheet();
+      if (result.success) {
+        toast({ title: "Import Successful", description: result.message });
+        fetchSubmissions();
+      } else {
+        toast({ title: "Import Failed", description: result.message || "An unknown error occurred during import.", variant: "destructive" });
+      }
+    } catch (error: any) {
+      toast({ title: "Error", description: `Failed to import off-campus data: ${error.message || 'Unknown error'}`, variant: "destructive" });
+    } finally {
+      setIsImporting(false);
     }
-  ];
-
-  const handleAddFilter = (criterion: FilterCriterion) => {
-    const newFilter: FilterType = {
-      id: Math.random().toString(36).substr(2, 9),
-      ...criterion,
-      label: `${criterion.field} ${criterion.operator} ${criterion.value}`
-    };
-    setActiveFilters([...activeFilters, newFilter]);
   };
 
-  const handleRemoveFilter = (id: string) => {
-    setActiveFilters(activeFilters.filter(filter => filter.id !== id));
+  const handleViewDetails = (submission: Submission) => {
+    setSelectedSubmission(submission);
+    setIsModalOpen(true);
   };
 
-  // Filter application function
-  const applyFilters = () => {
-    let filtered = [...submissions];
-    
-    // Group filters by field
-    const filtersByField = activeFilters.reduce((acc, filter) => {
-      acc[filter.field] = filter;
-      return acc;
-    }, {} as Record<string, FilterType>);
-
-    // Apply all filters
-    filtered = filtered.filter(submission => {
-      // Check each field that has an active filter
-      return Object.entries(filtersByField).every(([field, filter]) => {
-        const fieldValue = submission[field as keyof Submission];
-        
-        // Skip if the value is 'all'
-        if (filter.value === 'all') {
-          return true;
-        }
-
-        // Handle null or undefined values
-        if (!fieldValue) {
-          return false;
-        }
-
-        switch (filter.operator) {
-          case 'equals':
-            return fieldValue.toString().toLowerCase() === filter.value.toString().toLowerCase();
-          case 'contains':
-            return fieldValue.toString().toLowerCase().includes(filter.value.toString().toLowerCase());
-          default:
-            return true;
-        }
-      });
-    });
-
-    setFilteredSubmissions(filtered);
-    setShowFilterManager(false);
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+    setSelectedSubmission(null);
   };
 
-  useEffect(() => {
-    setFilteredSubmissions(submissions);
-  }, [submissions]);
-
-  if (isAuthenticated === false) {
-    return null; // Router will redirect to login
-  }
-
-  if (isLoading && isAuthenticated === null) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
-      </div>
-    );
-  }
-
-  return (
-    <div className="container mx-auto px-4 py-8 space-y-12">
-      {/* Header with filter count */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <div>
-          <h1 className="text-3xl font-bold">Startup Submissions</h1>
-          {activeFilters.length > 0 && (
-            <p className="text-sm text-muted-foreground mt-1">
-              Showing {filteredSubmissions.length} filtered results
-            </p>
-          )}
+  const SubmissionsGrid = ({ submissions, type }: { submissions: Submission[], type: 'on-campus' | 'off-campus' }) => {
+    if (isLoading) {
+      return (
+        <div className="flex items-center justify-center py-10 rounded-xl admin-card">
+          <Loader2 className="mr-3 h-8 w-8 animate-spin text-blue-600" />
+          <span className="admin-body-small admin-font-medium">Loading {type} submissions...</span>
         </div>
-        <div className="flex flex-wrap gap-4 w-full sm:w-auto">
-          <Button
-            onClick={fetchSubmissions}
-            variant="outline"
-            disabled={isLoading}
-            className="flex-1 sm:flex-none"
+      );
+    }
+    if (error) {
+      return (
+        <div className="flex flex-col items-center justify-center py-10 rounded-xl bg-rose-900/10 border border-rose-900/30">
+          <AlertCircle className="h-10 w-10 text-rose-400 mb-3" />
+          <h3 className="admin-heading-4 admin-text-error">Error loading data</h3>
+          <p className="admin-caption mt-1 mb-4 text-center max-w-md">{error}</p>
+          <Button 
+            onClick={fetchSubmissions} 
+            variant="outline" 
+            className="border-rose-500/30 text-rose-300 hover:bg-rose-900/30 hover:text-white"
           >
-            {isLoading ? (
-              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-            ) : (
-              <RefreshCw className="h-4 w-4 mr-2" />
-            )}
-            Refresh
-          </Button>
-          <Button
-            onClick={() => setShowFilterManager(true)}
-            className="bg-primary hover:bg-primary/90 flex-1 sm:flex-none"
-          >
-            <Filter className="h-4 w-4 mr-2" />
-            Filter
-            {activeFilters.length > 0 && (
-              <span className="ml-2 bg-white/20 px-2 py-0.5 rounded-full text-xs">
-                {activeFilters.length}
-              </span>
-            )}
+            Try Again
           </Button>
         </div>
-      </div>
-
-      {/* Filter Dialog with Active Filters */}
-      <Dialog open={showFilterManager} onOpenChange={setShowFilterManager}>
-        <DialogContent className="max-w-4xl">
-          <DialogHeader>
-            <DialogTitle>Filter Submissions</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-6">
-            {activeFilters.length > 0 && (
-              <div className="bg-secondary/20 p-4 rounded-lg">
-                <p className="text-sm font-medium mb-2">Active Filters:</p>
-                <div className="flex flex-wrap gap-2">
-                  {activeFilters.map(filter => {
-                    const filterOption = filterOptions.find(opt => opt.value === filter.field);
-                    const optionLabel = filterOption?.options?.find(opt => opt.value === filter.value)?.label;
-                    return (
-                      <div key={filter.id} className="flex items-center gap-2 bg-secondary px-3 py-1 rounded-full text-sm">
-                        <span>{`${filterOption?.label}: ${optionLabel || filter.value}`}</span>
-                        <button
-                          onClick={() => handleRemoveFilter(filter.id)}
-                          className="hover:text-destructive"
-                        >
-                          ×
-                        </button>
-                      </div>
-                    );
-                  })}
-                  <button
-                    onClick={() => setActiveFilters([])}
-                    className="text-sm text-muted-foreground hover:text-destructive"
-                  >
-                    Clear all
-                  </button>
-                </div>
+      );
+    }
+    if (submissions.length === 0) {
+      return (
+        <div className="text-center py-16 rounded-2xl admin-card border-dashed border-gray-200/50 relative overflow-hidden">
+          {/* Background effects */}
+          <div className="absolute inset-0 bg-gradient-to-br from-blue-50/30 via-white/10 to-purple-50/20 rounded-2xl"></div>
+          <div className="absolute top-6 right-6 w-2 h-2 bg-blue-400/20 rounded-full animate-bounce delay-300"></div>
+          <div className="absolute bottom-8 left-8 w-1.5 h-1.5 bg-purple-400/30 rounded-full animate-bounce delay-700"></div>
+          
+          <div className="relative space-y-8">
+            {/* Enhanced icon */}
+            <div className="relative group mx-auto w-fit">
+              <div className="absolute -inset-2 bg-gradient-to-r from-blue-500/20 via-purple-500/15 to-indigo-500/20 rounded-full blur opacity-50 group-hover:opacity-100 transition-all duration-500"></div>
+              <div className="relative admin-icon admin-icon-blue w-fit mx-auto p-8 shadow-lg group-hover:shadow-xl group-hover:scale-110 transition-all duration-500">
+                <FileTextIcon className="h-20 w-20 text-blue-600 group-hover:text-blue-700 transition-colors duration-300" />
+              </div>
+            </div>
+            
+            <div>
+              <h3 className="admin-heading-3 mb-3">No {type} submissions yet</h3>
+              <p className="admin-body-large max-w-lg mx-auto leading-relaxed">
+                {type === 'on-campus' 
+                  ? 'On-campus applications will appear here once students submit their innovative startup ideas through the platform' 
+                  : 'Off-campus applications will appear here once imported from external sources or submitted directly'
+                }
+              </p>
+            </div>
+            
+            {type === 'off-campus' && (
+              <div className="relative">
+                <Button 
+                  onClick={handleImportOffCampus}
+                  disabled={isImporting}
+                  className="group relative bg-gradient-to-r from-purple-500 to-pink-600 hover:from-purple-600 hover:to-pink-700 text-white font-semibold py-3 px-8 rounded-full border-0 shadow-lg shadow-purple-200/50 hover:shadow-xl hover:shadow-purple-300/50 transition-all duration-300 hover:scale-105 overflow-hidden"
+                >
+                  {/* Button shine effect */}
+                  <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -skew-x-12 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000 ease-out"></div>
+                  
+                  <div className="relative flex items-center gap-2">
+                    {isImporting ? <Loader2 className="h-5 w-5 animate-spin"/> : <UploadCloud className="h-5 w-5 group-hover:scale-110 transition-transform duration-300"/>}
+                    <span>Import Off-Campus Data</span>
+                  </div>
+                </Button>
               </div>
             )}
-            <FilterManager
-              filterOptions={filterOptions}
-              onAddFilter={handleAddFilter}
-              onRemoveFilter={handleRemoveFilter}
-              onApplyFilters={applyFilters}
-              filters={activeFilters}
-              className="space-y-4"
-            />
+            
+            {/* Animated badge */}
+            <div className="relative">
+              <div className="admin-badge admin-badge-neutral inline-flex items-center py-2 px-4 rounded-full shadow-sm">
+                <div className="w-2 h-2 bg-blue-500 rounded-full mr-2 animate-pulse"></div>
+                <span className="font-medium">Waiting for applications...</span>
+              </div>
+            </div>
           </div>
-        </DialogContent>
-      </Dialog>
-
-      {/* On-Campus Submissions */}
-      <div className="rounded-2xl bg-neutral-900/50 border border-neutral-800/50 overflow-hidden">
-        <div className="p-6">
-          <h2 className="text-2xl font-semibold flex items-center">
-            <Landmark className="mr-2" />
-            On-Campus Submissions
-          </h2>
-          <p className="text-sm text-neutral-400 mt-1">Review on-campus applications</p>
         </div>
-        <div className="p-6 pt-0">
-          {error ? (
-            <div className="flex items-center justify-center text-red-500 text-center py-8">
-              <AlertCircle className="h-5 w-5 mr-2" />
-              {error}
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={fetchSubmissions}
-                className="ml-4"
+      );
+    }
+    return (
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-6">
+        {submissions.map(submission => (
+          <OffCampusSubmissionCard
+            key={submission.id}
+            submission={submission}
+            processingAction={processingActionState}
+            onProcessAction={(id, action, name, email) => handleProcess(id, action, name, email, submission.campusStatus)}
+            onViewDetails={handleViewDetails}
+          />
+        ))}
+      </div>
+    );
+  };
+
+  return (
+    <div className="w-full min-h-screen flex flex-col items-center bg-gray-50 py-10 px-2">
+      <div className="w-full max-w-6xl mx-auto space-y-8">
+        <div className="bg-white rounded-2xl shadow-md border border-gray-200 overflow-hidden relative">
+          <div className="px-8 pt-8 pb-4 border-b border-gray-100 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div className="flex items-center gap-4">
+              <div className="bg-blue-100 rounded-full p-3 flex items-center justify-center">
+                <FileTextIcon className="h-6 w-6 text-blue-600" />
+              </div>
+              <div>
+                <h2 className="text-2xl font-bold text-gray-900 mb-1">Submissions</h2>
+                <p className="text-sm text-gray-500">Review applications with a clean, professional interface</p>
+              </div>
+            </div>
+            <div className="flex gap-2">
+              <Button 
+                onClick={fetchSubmissions} 
+                disabled={isLoading} 
+                className="bg-white border border-blue-200 text-blue-700 hover:bg-blue-50 hover:border-blue-300 focus:ring-2 focus:ring-blue-200 rounded-lg shadow-sm px-5 py-2 font-medium transition"
               >
-                Retry
+                {isLoading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <RefreshCw className="h-4 w-4 mr-2" />}
+                Refresh
+              </Button>
+              <Button 
+                onClick={handleImportOffCampus}
+                disabled={isImporting}
+                className="bg-white border border-purple-200 text-purple-700 hover:bg-purple-50 hover:border-purple-300 focus:ring-2 focus:ring-purple-200 rounded-lg shadow-sm px-5 py-2 font-medium transition"
+              >
+                {isImporting ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <UploadCloud className="h-4 w-4 mr-2" />}
+                Import Off-Campus Data
               </Button>
             </div>
-          ) : filteredSubmissions.filter(s => s.campusStatus === 'campus').length === 0 ? (
-            <p className="text-muted-foreground text-center py-8">
-              No on-campus submissions found.
-            </p>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {filteredSubmissions
-                .filter(submission => submission.campusStatus === 'campus')
-                .map((submission) => (
-                  <OnCampusSubmissionCard
-                    key={submission.id}
-                    submission={submission}
-                    onViewDetails={() => setSelectedSubmission(submission)}
-                    className="h-full"
-                  />
-                ))}
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* Off-Campus Submissions */}
-      <div className="rounded-2xl bg-neutral-900/50 border border-neutral-800/50 overflow-hidden">
-        <div className="p-6">
-          <h2 className="text-2xl font-semibold flex items-center">
-            <Building className="mr-2" />
-            Off-Campus Submissions
-          </h2>
-          <p className="text-sm text-neutral-400 mt-1">Review off-campus applications</p>
-        </div>
-        <div className="p-6 pt-0">
-          {error ? (
-            <div className="flex items-center justify-center text-red-500 text-center py-8">
-              <AlertCircle className="h-5 w-5 mr-2" />
-              {error}
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={fetchSubmissions}
-                className="ml-4"
+          </div>
+          <div className="px-8 pt-6 pb-2">
+            <div className="flex gap-2 mb-6">
+              <button
+                type="button"
+                onClick={() => setActiveTab('on-campus')}
+                className={`px-5 py-2 rounded-lg font-semibold border transition focus:outline-none focus:ring-2 focus:ring-blue-200 ${
+                  activeTab === 'on-campus'
+                    ? 'bg-blue-600 text-white border-blue-600 shadow'
+                    : 'bg-white text-blue-700 border-blue-200 hover:bg-blue-50'
+                }`}
+                aria-current={activeTab === 'on-campus'}
               >
-                Retry
-              </Button>
+                <span className="inline-flex items-center gap-2">
+                  <Building className="h-4 w-4" />
+                  On-Campus
+                </span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setActiveTab('off-campus')}
+                className={`px-5 py-2 rounded-lg font-semibold border transition focus:outline-none focus:ring-2 focus:ring-purple-200 ${
+                  activeTab === 'off-campus'
+                    ? 'bg-purple-600 text-white border-purple-600 shadow'
+                    : 'bg-white text-purple-700 border-purple-200 hover:bg-purple-50'
+                }`}
+                aria-current={activeTab === 'off-campus'}
+              >
+                <span className="inline-flex items-center gap-2">
+                  <Landmark className="h-4 w-4" />
+                  Off-Campus
+                </span>
+              </button>
             </div>
-          ) : filteredSubmissions.filter(s => s.campusStatus === 'off-campus').length === 0 ? (
-            <p className="text-muted-foreground text-center py-8">
-              No off-campus submissions found.
-            </p>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {filteredSubmissions
-                .filter(submission => submission.campusStatus === 'off-campus')
-                .map((submission) => (
-                  <OnCampusSubmissionCard
-                    key={submission.id}
-                    submission={submission}
-                    onViewDetails={() => setSelectedSubmission(submission)}
-                    className="h-full"
-                  />
-                ))}
-            </div>
-          )}
+            {activeTab === 'on-campus' && (
+              <SubmissionsGrid submissions={onCampusSubmissions} type="on-campus" />
+            )}
+            {activeTab === 'off-campus' && (
+              <SubmissionsGrid submissions={offCampusSubmissions} type="off-campus" />
+            )}
+          </div>
         </div>
-      </div>
-
-      {/* Submission Detail Modal */}
-      {selectedSubmission && (
         <SubmissionDetailModal
+          isOpen={isModalOpen}
+          onClose={handleCloseModal}
           submission={selectedSubmission}
-          onClose={() => setSelectedSubmission(null)}
-          onUpdateEvaluation={(evaluations) => {
-            setSubmissions(submissions.map(sub => 
-              sub.id === selectedSubmission.id 
-                ? { ...sub, evaluations } 
-                : sub
-            ));
-          }}
         />
-      )}
+      </div>
     </div>
+  );
+}
+
+export default function AdminSubmissionsPage() {
+  return (
+    <Suspense fallback={
+      <div className="space-y-8">
+        <div className="admin-card overflow-hidden">
+          <div className="p-6 flex flex-col sm:flex-row sm:justify-between items-start sm:items-center">
+            <div>
+              <h2 className="text-xl font-bold text-gray-800 flex items-center">
+                <FileTextIcon className="mr-2"/>Submissions
+              </h2>
+              <p className="text-sm text-gray-500">Loading submissions...</p>
+            </div>
+          </div>
+          <div className="p-6 flex items-center justify-center">
+            <Loader2 className="animate-spin h-8 w-8 text-gray-400" />
+          </div>
+        </div>
+      </div>
+    }>
+      <AdminSubmissionsContent />
+    </Suspense>
   );
 }
