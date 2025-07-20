@@ -17,6 +17,13 @@ interface ProcessingActionState {
   type: 'accept' | 'reject';
 }
 
+interface KPIData {
+  total: number;
+  pending: number;
+  accepted: number;
+  rejected: number;
+}
+
 export default function AdminDashboardPage() {
   const [submissions, setSubmissions] = useState<Submission[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -24,7 +31,8 @@ export default function AdminDashboardPage() {
   const { toast } = useToast();
   const [processingActionState, setProcessingActionState] = useState<ProcessingActionState | null>(null);
 
-  const [kpiData, setKpiData] = useState({ total: 0, pending: 0, accepted: 0, rejected: 0 });
+  const [onCampusKpi, setOnCampusKpi] = useState<KPIData>({ total: 0, pending: 0, accepted: 0, rejected: 0 });
+  const [offCampusKpi, setOffCampusKpi] = useState<KPIData>({ total: 0, pending: 0, accepted: 0, rejected: 0 });
 
   const fetchSubmissions = async () => {
     setIsLoading(true);
@@ -55,9 +63,26 @@ export default function AdminDashboardPage() {
   };
 
   const updateKpi = (data: Submission[]) => {
-    const counts = { pending: 0, accepted: 0, rejected: 0 };
-    data.forEach(sub => counts[sub.status]++);
-    setKpiData({ total: data.length, pending: counts.pending, accepted: counts.accepted, rejected: counts.rejected });
+    const onCampusCounts = { pending: 0, accepted: 0, rejected: 0 };
+    const offCampusCounts = { pending: 0, accepted: 0, rejected: 0 };
+
+    data.forEach(sub => {
+      if (sub.campusStatus === 'campus') {
+        onCampusCounts[sub.status]++;
+      } else if (sub.campusStatus === 'off-campus') {
+        offCampusCounts[sub.status]++;
+      }
+    });
+
+    setOnCampusKpi({
+      total: Object.values(onCampusCounts).reduce((a, b) => a + b, 0),
+      ...onCampusCounts
+    });
+
+    setOffCampusKpi({
+      total: Object.values(offCampusCounts).reduce((a, b) => a + b, 0),
+      ...offCampusCounts
+    });
   };
 
   useEffect(() => { fetchSubmissions(); }, []);
@@ -85,13 +110,6 @@ export default function AdminDashboardPage() {
     }
   };
 
-  const getBadgeClasses = (status: Submission['status']) =>
-    status === 'accepted'
-      ? 'bg-teal-500/10 text-teal-400'
-      : status === 'rejected'
-        ? 'bg-rose-500/10 text-rose-400'
-        : 'bg-amber-500/10 text-amber-400';
-
   const KpiCard = ({ title, value, Icon, description, className = '', iconBg, valueColor }: { title: string; value: number | string; Icon: React.ComponentType<{ className?: string }>; description?: string; className?: string; iconBg?: string; valueColor?: string }) => (
     <div className={`group relative p-6 bg-neutral-900/50 backdrop-blur-sm rounded-2xl border border-neutral-800/50 hover:border-indigo-500/30 transition-all duration-300 overflow-hidden ${className} hover:shadow-lg hover:shadow-indigo-500/5`}>
       <div className="flex flex-col h-full">
@@ -99,9 +117,6 @@ export default function AdminDashboardPage() {
           <div className={`p-3 rounded-xl ${iconBg || 'bg-indigo-500/10'} group-hover:bg-opacity-80 transition-all duration-300`}>
             <Icon className={`h-5 w-5 ${valueColor || 'text-indigo-400'} group-hover:scale-110 transition-transform`} />
           </div>
-          <span className="text-xs font-medium px-2.5 py-1 rounded-full bg-neutral-800/50 text-neutral-400">
-            +2.5%
-          </span>
         </div>
         <div className="mt-2">
           <p className="text-sm font-medium text-neutral-400">{title}</p>
@@ -119,82 +134,102 @@ export default function AdminDashboardPage() {
     </div>
   );
 
-  // Custom card components for each KPI with specific styling
-  const TotalCard = () => (
-    <KpiCard 
-      title="Total" 
-      value={kpiData.total} 
-      Icon={FileTextIcon} 
-      description="All received"
-      iconBg="bg-blue-500/10"
-      valueColor="text-blue-400"
-      className="hover:border-blue-500/30 hover:shadow-blue-500/5"
-    />
+  const renderKpiSection = (kpiData: KPIData, title: string, Icon: React.ComponentType<{ className?: string }>) => (
+    <div className="space-y-6">
+      <div className="flex items-center gap-2">
+        <Icon className="h-5 w-5 text-neutral-400" />
+        <h3 className="text-lg font-semibold text-white">{title}</h3>
+      </div>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <KpiCard 
+          title="Total" 
+          value={kpiData.total} 
+          Icon={FileTextIcon} 
+          description="All received"
+          iconBg="bg-blue-500/10"
+          valueColor="text-blue-400"
+          className="hover:border-blue-500/30 hover:shadow-blue-500/5"
+        />
+        <KpiCard 
+          title="Pending" 
+          value={kpiData.pending} 
+          Icon={Clock} 
+          description="Awaiting review"
+          iconBg="bg-amber-500/10"
+          valueColor="text-amber-400"
+          className="hover:border-amber-500/30 hover:shadow-amber-500/5"
+        />
+        <KpiCard 
+          title="Accepted" 
+          value={kpiData.accepted} 
+          Icon={CheckCircle} 
+          description="Approved"
+          iconBg="bg-teal-500/10"
+          valueColor="text-teal-400"
+          className="hover:border-teal-500/30 hover:shadow-teal-500/5"
+        />
+        <KpiCard 
+          title="Rejected" 
+          value={kpiData.rejected} 
+          Icon={XCircle} 
+          description="Denied"
+          iconBg="bg-rose-500/10"
+          valueColor="text-rose-400"
+          className="hover:border-rose-500/30 hover:shadow-rose-500/5"
+        />
+      </div>
+    </div>
   );
 
-  const PendingCard = () => (
-    <KpiCard 
-      title="Pending" 
-      value={kpiData.pending} 
-      Icon={Clock} 
-      description="Awaiting review"
-      iconBg="bg-amber-500/10"
-      valueColor="text-amber-400"
-      className="hover:border-amber-500/30 hover:shadow-amber-500/5"
-    />
-  );
-
-  const AcceptedCard = () => (
-    <KpiCard 
-      title="Accepted" 
-      value={kpiData.accepted} 
-      Icon={CheckCircle} 
-      description="Approved"
-      iconBg="bg-teal-500/10"
-      valueColor="text-teal-400"
-      className="hover:border-teal-500/30 hover:shadow-teal-500/5"
-    />
-  );
-
-  const RejectedCard = () => (
-    <KpiCard 
-      title="Rejected" 
-      value={kpiData.rejected} 
-      Icon={XCircle} 
-      description="Denied"
-      iconBg="bg-rose-500/10"
-      valueColor="text-rose-400"
-      className="hover:border-rose-500/30 hover:shadow-rose-500/5"
-    />
-  );
+  const onCampusSubmissions = submissions.filter(sub => sub.campusStatus === 'campus');
+  const offCampusSubmissions = submissions.filter(sub => sub.campusStatus === 'off-campus');
 
   return (
-    <div className="space-y-8">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          <TotalCard />
-          <PendingCard />
-          <AcceptedCard />
-          <RejectedCard />
-        </div>
-        <div className="rounded-2xl bg-neutral-900/50 border border-neutral-800/50 overflow-hidden">
-          <div className="p-6 flex flex-col sm:flex-row sm:justify-between items-start sm:items-center">
-            <div>
-              <h2 className="text-xl font-bold text-white flex items-center"><FileTextIcon className="mr-2"/>Submissions</h2>
-              <p className="text-sm text-neutral-400">Review applications</p>
-            </div>
-            <Button onClick={fetchSubmissions} disabled={isLoading} variant="outline" size="sm" className="mt-4 sm:mt-0">
-              {isLoading ? <Loader2 className="animate-spin mr-2"/> : <RefreshCw className="mr-2"/>}Refresh
-            </Button>
+    <div className="space-y-12">
+      {/* On-Campus Section */}
+      {renderKpiSection(onCampusKpi, "On-Campus Submissions", Landmark)}
+      <div className="rounded-2xl bg-neutral-900/50 border border-neutral-800/50 overflow-hidden">
+        <div className="p-6 flex flex-col sm:flex-row sm:justify-between items-start sm:items-center">
+          <div>
+            <h2 className="text-xl font-bold text-white flex items-center">
+              <Landmark className="mr-2"/>On-Campus Submissions
+            </h2>
+            <p className="text-sm text-neutral-400">Review on-campus applications</p>
           </div>
-          <SubmissionsTable
-            submissions={submissions}
-            processingAction={processingActionState}
-            onProcessAction={handleProcess}
-            isLoading={isLoading}
-            error={error}
-            onRetry={fetchSubmissions}
-          />
         </div>
+        <SubmissionsTable
+          submissions={onCampusSubmissions}
+          processingAction={processingActionState}
+          onProcessAction={handleProcess}
+          isLoading={isLoading}
+          error={error}
+          onRetry={fetchSubmissions}
+        />
+      </div>
+
+      {/* Off-Campus Section */}
+      {renderKpiSection(offCampusKpi, "Off-Campus Submissions", Building)}
+      <div className="rounded-2xl bg-neutral-900/50 border border-neutral-800/50 overflow-hidden">
+        <div className="p-6 flex flex-col sm:flex-row sm:justify-between items-start sm:items-center">
+          <div>
+            <h2 className="text-xl font-bold text-white flex items-center">
+              <Building className="mr-2"/>Off-Campus Submissions
+            </h2>
+            <p className="text-sm text-neutral-400">Review off-campus applications</p>
+          </div>
+          <Button onClick={fetchSubmissions} disabled={isLoading} variant="outline" size="sm" className="mt-4 sm:mt-0">
+            {isLoading ? <Loader2 className="animate-spin mr-2"/> : <RefreshCw className="mr-2"/>}Refresh
+          </Button>
+        </div>
+        <SubmissionsTable
+          submissions={offCampusSubmissions}
+          processingAction={processingActionState}
+          onProcessAction={handleProcess}
+          isLoading={isLoading}
+          error={error}
+          onRetry={fetchSubmissions}
+        />
+      </div>
     </div>
   );
 }

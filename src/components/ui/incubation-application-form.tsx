@@ -204,7 +204,7 @@ export default function IncubationApplicationForm() {
         phone: values.phone,
         inquiryType: values.inquiryType,
         companyEmail: values.companyEmail,
-        founders: values.founderNames, // string or array, as you prefer
+        founderNames: values.founderNames,
         founderBio: values.founderBio,
         linkedinUrl: values.linkedinUrl,
         teamInfo: values.teamInfo,
@@ -213,13 +213,13 @@ export default function IncubationApplicationForm() {
         problemStatement: values.problemStatement,
         uniqueValueProp: values.uniqueValueProp,
         currentStage: values.currentStage,
+        supportingFile: fileBase64,
+        submittedAt: serverTimestamp(),
+        campusStatus: 'off-campus',
+        status: 'pending',
         domain: values.domain,
         sector: values.sector,
         legalStatus: values.legalStatus,
-        supportingFileBase64: fileBase64,
-        submittedAt: serverTimestamp(),
-        status: "new",
-        campusStatus: "pending"
       };
       await addDoc(collection(db, "contactSubmissions"), docData);
       toast({

@@ -4,6 +4,9 @@ import './globals.css';
 import { Toaster } from "@/components/ui/toaster";
 import { ThemeProvider } from "@/components/theme-provider";
 import { NavbarProvider } from "@/contexts/navbar-context";
+import { Inter } from "next/font/google";
+
+const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
   title: 'RCEOM-TBI - Empowering Innovators',
@@ -17,10 +20,10 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body style={{ position: 'relative' }} className={`${orbitron.variable} ${poppins.variable} ${montserrat.variable} font-poppins antialiased`}> {/* Add montserrat.variable */}
+      <body style={{ position: 'relative' }} className={`${orbitron.variable} ${poppins.variable} ${montserrat.variable} font-poppins antialiased ${inter.className}`}> {/* Add montserrat.variable */}
         <ThemeProvider
           attribute="class"
-          defaultTheme="dark"
+          defaultTheme="system"
           enableSystem
           disableTransitionOnChange
         >

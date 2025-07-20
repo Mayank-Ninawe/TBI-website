@@ -13,7 +13,7 @@ export interface Submission {
   yearOfStudy?: string;
   campus?: string;
   companyName?: string;
-  startupName?: string;
+  startupName: string;
   idea?: string;
   startupIdea?: string;
   message?: string;
@@ -39,15 +39,45 @@ export interface Submission {
   currentStage?: string;
   
   // New dropdown fields
-  domain?: string;
-  sector?: string;
+  domain: string;
+  sector: string;
   legalStatus?: string;
   
   attachmentBase64?: string;
   attachmentName?: string;
+
+  evaluations?: {
+    criterionId: string;
+    score: number;
+  }[];
 }
 
 export interface ProcessingActionState {
   id: string;
   type: 'accept' | 'reject';
+}
+
+export interface EvaluationCriterion {
+  id: string;
+  name: string;
+  description: string;
+  maxScore: number;
+  weight: number;
+}
+
+export interface EvaluationScore {
+  criterionId: string;
+  score: number;
+  comment?: string;
+}
+
+export interface Evaluation {
+  id: string;
+  submissionId: string;
+  evaluatorId: string;
+  scores: EvaluationScore[];
+  totalScore: number;
+  comment?: string;
+  createdAt: Date;
+  updatedAt: Date;
 }

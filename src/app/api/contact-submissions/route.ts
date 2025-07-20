@@ -87,7 +87,7 @@ export async function POST(request: NextRequest) {
       name: body.fullName, // Map fullName to name for admin display
       email: body.companyEmail, // Map companyEmail to email for admin display
       idea: body.startupIdea, // Map startupIdea to idea for admin display
-      campusStatus: 'campus' as CampusStatus,
+      campusStatus: body.campusStatus || 'campus' as CampusStatus, // Use provided campusStatus or default to 'campus'
       
       submittedAt: serverTimestamp(),
       status: 'pending'
