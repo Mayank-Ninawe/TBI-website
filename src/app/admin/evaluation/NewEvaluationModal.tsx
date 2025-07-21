@@ -366,7 +366,7 @@ function NewEvaluationModal({ isOpen, onClose, onSubmit }: EvaluationModalProps)
                   value={formData.roundName}
                   onChange={(e) => setFormData({ ...formData, roundName: e.target.value })}
                   placeholder="e.g., Q1 2024 FinTech Innovation Challenge"
-                  className="bg-white border-gray-300 text-gray-900 placeholder-gray-500 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 backdrop-blur-sm transition-all duration-300 shadow-sm hover:shadow-md"
+                  className="bg-white border border-gray-200 rounded-xl px-5 py-3 text-base font-medium placeholder-gray-400 focus:border-blue-400 focus:ring-2 focus:ring-blue-100 transition-all duration-300 shadow-sm hover:shadow-md"
                   required
                 />
               </div>
@@ -423,7 +423,7 @@ function NewEvaluationModal({ isOpen, onClose, onSubmit }: EvaluationModalProps)
                   onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                   placeholder="Describe the evaluation round goals, target participants, key objectives, and what makes this round unique..."
                   rows={4}
-                  className="bg-white border-gray-300 text-gray-900 placeholder-gray-500 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 backdrop-blur-sm transition-all duration-300 resize-none shadow-sm hover:shadow-md"
+                  className="bg-white border border-gray-200 rounded-xl px-5 py-3 text-base font-medium placeholder-gray-400 focus:border-blue-400 focus:ring-2 focus:ring-blue-100 transition-all duration-300 resize-none shadow-sm hover:shadow-md"
                 />
               </div>
 
@@ -497,7 +497,7 @@ function NewEvaluationModal({ isOpen, onClose, onSubmit }: EvaluationModalProps)
                   onChange={(e) => setFormData({ ...formData, evaluationPeriod: parseInt(e.target.value) || 1 })}
                   min="1"
                   max="90"
-                  className="bg-white border-gray-300 text-gray-900 placeholder-gray-500 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 backdrop-blur-sm transition-all duration-300 shadow-sm hover:shadow-md"
+                  className="bg-white border border-gray-200 rounded-xl px-5 py-3 text-base font-medium placeholder-gray-400 focus:border-blue-400 focus:ring-2 focus:ring-blue-100 transition-all duration-300 shadow-sm hover:shadow-md"
                 />
               </div>
 
@@ -510,7 +510,7 @@ function NewEvaluationModal({ isOpen, onClose, onSubmit }: EvaluationModalProps)
                   type="date"
                   value={formData.startDate}
                   onChange={(e) => setFormData({ ...formData, startDate: e.target.value })}
-                  className="bg-white border-gray-300 text-gray-900 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 backdrop-blur-sm transition-all duration-300 shadow-sm hover:shadow-md"
+                  className="bg-white border border-gray-200 rounded-xl px-5 py-3 text-base font-medium placeholder-gray-400 focus:border-blue-400 focus:ring-2 focus:ring-blue-100 transition-all duration-300 shadow-sm hover:shadow-md"
                 />
               </div>
 
@@ -523,7 +523,7 @@ function NewEvaluationModal({ isOpen, onClose, onSubmit }: EvaluationModalProps)
                   type="date"
                   value={formData.endDate}
                   onChange={(e) => setFormData({ ...formData, endDate: e.target.value })}
-                  className="bg-white border-gray-300 text-gray-900 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 backdrop-blur-sm transition-all duration-300 shadow-sm hover:shadow-md"
+                  className="bg-white border border-gray-200 rounded-xl px-5 py-3 text-base font-medium placeholder-gray-400 focus:border-blue-400 focus:ring-2 focus:ring-blue-100 transition-all duration-300 shadow-sm hover:shadow-md"
                 />
               </div>
 
@@ -536,7 +536,7 @@ function NewEvaluationModal({ isOpen, onClose, onSubmit }: EvaluationModalProps)
                   type="datetime-local"
                   value={formData.applicationDeadline}
                   onChange={(e) => setFormData({ ...formData, applicationDeadline: e.target.value })}
-                  className="bg-white border-gray-300 text-gray-900 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 backdrop-blur-sm transition-all duration-300 shadow-sm hover:shadow-md"
+                  className="bg-white border border-gray-200 rounded-xl px-5 py-3 text-base font-medium placeholder-gray-400 focus:border-blue-400 focus:ring-2 focus:ring-blue-100 transition-all duration-300 shadow-sm hover:shadow-md"
                 />
               </div>
 
@@ -549,7 +549,7 @@ function NewEvaluationModal({ isOpen, onClose, onSubmit }: EvaluationModalProps)
                   type="datetime-local"
                   value={formData.evaluationDeadline}
                   onChange={(e) => setFormData({ ...formData, evaluationDeadline: e.target.value })}
-                  className="bg-white border-gray-300 text-gray-900 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 backdrop-blur-sm transition-all duration-300 shadow-sm hover:shadow-md"
+                  className="bg-white border border-gray-200 rounded-xl px-5 py-3 text-base font-medium placeholder-gray-400 focus:border-blue-400 focus:ring-2 focus:ring-blue-100 transition-all duration-300 shadow-sm hover:shadow-md"
                 />
               </div>
 
@@ -562,7 +562,7 @@ function NewEvaluationModal({ isOpen, onClose, onSubmit }: EvaluationModalProps)
                   type="date"
                   value={formData.notificationDate}
                   onChange={(e) => setFormData({ ...formData, notificationDate: e.target.value })}
-                  className="bg-white border-gray-300 text-gray-900 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 backdrop-blur-sm transition-all duration-300 shadow-sm hover:shadow-md"
+                  className="bg-white border border-gray-200 rounded-xl px-5 py-3 text-base font-medium placeholder-gray-400 focus:border-blue-400 focus:ring-2 focus:ring-blue-100 transition-all duration-300 shadow-sm hover:shadow-md"
                 />
               </div>
 
@@ -626,7 +626,7 @@ function NewEvaluationModal({ isOpen, onClose, onSubmit }: EvaluationModalProps)
                   onChange={(e) => setFormData({ ...formData, maxScore: parseInt(e.target.value) || 100 })}
                   min="1"
                   max="1000"
-                  className="bg-white border-gray-300 text-gray-900 placeholder-gray-500 focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 backdrop-blur-sm transition-all duration-300 shadow-sm hover:shadow-md"
+                  className="bg-white border border-gray-200 rounded-xl px-5 py-3 text-base font-medium placeholder-gray-400 focus:border-blue-400 focus:ring-2 focus:ring-blue-100 transition-all duration-300 shadow-sm hover:shadow-md"
                 />
               </div>
               
@@ -642,7 +642,7 @@ function NewEvaluationModal({ isOpen, onClose, onSubmit }: EvaluationModalProps)
                   onChange={(e) => setFormData({ ...formData, minimumScore: parseInt(e.target.value) || 0 })}
                   min="0"
                   max={formData.maxScore}
-                  className="bg-white border-gray-300 text-gray-900 placeholder-gray-500 focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 backdrop-blur-sm transition-all duration-300 shadow-sm hover:shadow-md"
+                  className="bg-white border border-gray-200 rounded-xl px-5 py-3 text-base font-medium placeholder-gray-400 focus:border-blue-400 focus:ring-2 focus:ring-blue-100 transition-all duration-300 shadow-sm hover:shadow-md"
                 />
               </div>
 
@@ -658,7 +658,7 @@ function NewEvaluationModal({ isOpen, onClose, onSubmit }: EvaluationModalProps)
                   onChange={(e) => setFormData({ ...formData, passingGrade: parseInt(e.target.value) || 70 })}
                   min={formData.minimumScore}
                   max={formData.maxScore}
-                  className="bg-white border-gray-300 text-gray-900 placeholder-gray-500 focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 backdrop-blur-sm transition-all duration-300 shadow-sm hover:shadow-md"
+                  className="bg-white border border-gray-200 rounded-xl px-5 py-3 text-base font-medium placeholder-gray-400 focus:border-blue-400 focus:ring-2 focus:ring-blue-100 transition-all duration-300 shadow-sm hover:shadow-md"
                 />
               </div>
             </div>
@@ -672,7 +672,7 @@ function NewEvaluationModal({ isOpen, onClose, onSubmit }: EvaluationModalProps)
                 id="scoringMethod"
                 value={formData.scoringMethod}
                 onChange={(e) => setFormData({ ...formData, scoringMethod: e.target.value as any })}
-                className="w-full p-3 bg-white border border-gray-300 rounded-lg text-gray-900 focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 backdrop-blur-sm transition-all duration-300 shadow-sm hover:shadow-md"
+                className="w-full p-3 bg-white border border-gray-300 rounded-lg text-gray-900 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 backdrop-blur-sm transition-all duration-300 shadow-sm hover:shadow-md"
               >
                 <option value="weighted">⚖️ Weighted Average (Recommended)</option>
                 <option value="simple">➕ Simple Average</option>
@@ -709,7 +709,7 @@ function NewEvaluationModal({ isOpen, onClose, onSubmit }: EvaluationModalProps)
                             value={criteria.name}
                             onChange={(e) => updateCriteria(index, 'name', e.target.value)}
                             placeholder="e.g., Innovation & Technology"
-                            className="bg-white border-gray-300 text-gray-900 text-sm shadow-sm"
+                            className="bg-white border border-gray-200 rounded-xl px-5 py-3 text-base font-medium placeholder-gray-400 focus:border-blue-400 focus:ring-2 focus:ring-blue-100 transition-all duration-300 shadow-sm hover:shadow-md"
                           />
                         </div>
                         <div className="md:col-span-2">
@@ -720,7 +720,7 @@ function NewEvaluationModal({ isOpen, onClose, onSubmit }: EvaluationModalProps)
                             onChange={(e) => updateCriteria(index, 'weight', parseInt(e.target.value) || 0)}
                             min="0"
                             max="100"
-                            className="bg-white border-gray-300 text-gray-900 text-sm shadow-sm"
+                            className="bg-white border border-gray-200 rounded-xl px-5 py-3 text-base font-medium placeholder-gray-400 focus:border-blue-400 focus:ring-2 focus:ring-blue-100 transition-all duration-300 shadow-sm hover:shadow-md"
                           />
                         </div>
                         <div className="md:col-span-5">
@@ -729,7 +729,7 @@ function NewEvaluationModal({ isOpen, onClose, onSubmit }: EvaluationModalProps)
                             value={criteria.description}
                             onChange={(e) => updateCriteria(index, 'description', e.target.value)}
                             placeholder="Brief description..."
-                            className="bg-white border-gray-300 text-gray-900 text-sm shadow-sm"
+                            className="bg-white border border-gray-200 rounded-xl px-5 py-3 text-base font-medium placeholder-gray-400 focus:border-blue-400 focus:ring-2 focus:ring-blue-100 transition-all duration-300 shadow-sm hover:shadow-md"
                           />
                         </div>
                         <div className="md:col-span-1">
@@ -780,7 +780,7 @@ function NewEvaluationModal({ isOpen, onClose, onSubmit }: EvaluationModalProps)
                   onChange={(e) => setFormData({ ...formData, maxFileSize: parseInt(e.target.value) || 10 })}
                   min="1"
                   max="100"
-                  className="bg-white border-gray-300 text-gray-900 placeholder-gray-500 focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 backdrop-blur-sm transition-all duration-300 shadow-sm hover:shadow-md"
+                  className="bg-white border border-gray-200 rounded-xl px-5 py-3 text-base font-medium placeholder-gray-400 focus:border-blue-400 focus:ring-2 focus:ring-blue-100 transition-all duration-300 shadow-sm hover:shadow-md"
                 />
               </div>
 
@@ -836,7 +836,7 @@ function NewEvaluationModal({ isOpen, onClose, onSubmit }: EvaluationModalProps)
                   onChange={(e) => setFormData({ ...formData, evaluatorCount: parseInt(e.target.value) || 1 })}
                   min="1"
                   max="20"
-                  className="bg-white border-gray-300 text-gray-900 placeholder-gray-500 focus:border-green-500 focus:ring-2 focus:ring-green-500/20 backdrop-blur-sm transition-all duration-300 shadow-sm hover:shadow-md"
+                  className="bg-white border border-gray-200 rounded-xl px-5 py-3 text-base font-medium placeholder-gray-400 focus:border-blue-400 focus:ring-2 focus:ring-blue-100 transition-all duration-300 shadow-sm hover:shadow-md"
                 />
               </div>
 
@@ -850,7 +850,7 @@ function NewEvaluationModal({ isOpen, onClose, onSubmit }: EvaluationModalProps)
                   type="datetime-local"
                   value={formData.evaluatorDeadline}
                   onChange={(e) => setFormData({ ...formData, evaluatorDeadline: e.target.value })}
-                  className="bg-white border-gray-300 text-gray-900 focus:border-green-500 focus:ring-2 focus:ring-green-500/20 backdrop-blur-sm transition-all duration-300 shadow-sm hover:shadow-md"
+                  className="bg-white border border-gray-200 rounded-xl px-5 py-3 text-base font-medium placeholder-gray-400 focus:border-blue-400 focus:ring-2 focus:ring-blue-100 transition-all duration-300 shadow-sm hover:shadow-md"
                 />
               </div>
             </div>
@@ -883,7 +883,7 @@ function NewEvaluationModal({ isOpen, onClose, onSubmit }: EvaluationModalProps)
                 onChange={(e) => setFormData({ ...formData, evaluatorInstructions: e.target.value })}
                 placeholder="Provide detailed instructions for evaluators including evaluation criteria, expectations, and any specific guidelines..."
                 rows={4}
-                className="bg-white border-gray-300 text-gray-900 placeholder-gray-500 focus:border-green-500 focus:ring-2 focus:ring-green-500/20 backdrop-blur-sm transition-all duration-300 resize-none shadow-sm hover:shadow-md"
+                className="bg-white border border-gray-200 rounded-xl px-5 py-3 text-base font-medium placeholder-gray-400 focus:border-blue-400 focus:ring-2 focus:ring-blue-100 transition-all duration-300 resize-none shadow-sm hover:shadow-md"
               />
             </div>
 
@@ -1050,7 +1050,7 @@ function NewEvaluationModal({ isOpen, onClose, onSubmit }: EvaluationModalProps)
                       onChange={(e) => setFormData({ ...formData, resubmissionLimit: parseInt(e.target.value) || 1 })}
                       min="1"
                       max="5"
-                      className="bg-white border-gray-300 text-gray-900 w-32 shadow-sm"
+                      className="bg-white border border-gray-200 rounded-xl px-5 py-3 text-base font-medium placeholder-gray-400 focus:border-blue-400 focus:ring-2 focus:ring-blue-100 transition-all duration-300 shadow-sm hover:shadow-md"
                     />
                   </div>
                 )}
@@ -1092,7 +1092,7 @@ function NewEvaluationModal({ isOpen, onClose, onSubmit }: EvaluationModalProps)
                                   value={prize.name}
                                   onChange={(e) => updatePrize(index, 'name', e.target.value)}
                                   placeholder="e.g., First Place"
-                                  className="bg-white border-gray-300 text-gray-900 text-sm shadow-sm"
+                                  className="bg-white border border-gray-200 rounded-xl px-5 py-3 text-base font-medium placeholder-gray-400 focus:border-blue-400 focus:ring-2 focus:ring-blue-100 transition-all duration-300 shadow-sm hover:shadow-md"
                                 />
                               </div>
                               <div className="md:col-span-2">
@@ -1101,7 +1101,7 @@ function NewEvaluationModal({ isOpen, onClose, onSubmit }: EvaluationModalProps)
                                   value={prize.value}
                                   onChange={(e) => updatePrize(index, 'value', e.target.value)}
                                   placeholder="$10,000"
-                                  className="bg-white border-gray-300 text-gray-900 text-sm shadow-sm"
+                                  className="bg-white border border-gray-200 rounded-xl px-5 py-3 text-base font-medium placeholder-gray-400 focus:border-blue-400 focus:ring-2 focus:ring-blue-100 transition-all duration-300 shadow-sm hover:shadow-md"
                                 />
                               </div>
                               <div className="md:col-span-6">
@@ -1110,7 +1110,7 @@ function NewEvaluationModal({ isOpen, onClose, onSubmit }: EvaluationModalProps)
                                   value={prize.description}
                                   onChange={(e) => updatePrize(index, 'description', e.target.value)}
                                   placeholder="Prize description..."
-                                  className="bg-white border-gray-300 text-gray-900 text-sm shadow-sm"
+                                  className="bg-white border border-gray-200 rounded-xl px-5 py-3 text-base font-medium placeholder-gray-400 focus:border-blue-400 focus:ring-2 focus:ring-blue-100 transition-all duration-300 shadow-sm hover:shadow-md"
                                 />
                               </div>
                               <div className="md:col-span-1">
@@ -1218,82 +1218,82 @@ function NewEvaluationModal({ isOpen, onClose, onSubmit }: EvaluationModalProps)
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm">
-      <div className="relative w-full max-w-3xl h-[90vh] flex flex-col bg-white rounded-2xl shadow-2xl border border-gray-200 overflow-hidden">
+      <div className="relative w-full max-w-3xl h-[90vh] flex flex-col bg-white rounded-3xl shadow-2xl border border-gray-100 overflow-hidden p-0">
         {/* Close Button */}
         <button
           onClick={onClose}
-          className="absolute top-4 right-4 z-10 p-2 rounded-full bg-gray-100 hover:bg-gray-200 border border-gray-300 text-gray-500 hover:text-red-500 transition"
+          className="absolute top-6 right-6 z-10 p-3 rounded-full bg-gray-50 hover:bg-gray-200 border border-gray-200 text-gray-400 hover:text-red-500 transition"
           aria-label="Close modal"
         >
-          <X className="h-6 w-6" />
+          <X className="h-7 w-7" />
         </button>
 
         {/* Stepper */}
-        <div className="px-8 pt-8 pb-4 border-b border-gray-100 bg-white">
-          <div className="flex items-center justify-between">
+        <div className="px-12 pt-12 pb-6 border-b border-gray-100 bg-white">
+          <div className="flex items-center justify-between gap-4">
             {stepConfig.map((step, idx) => {
               const StepIcon = step.icon;
               const isActive = idx + 1 === currentStep;
               const isCompleted = idx + 1 < currentStep;
               return (
                 <div key={idx} className="flex flex-col items-center flex-1">
-                  <div className={`w-9 h-9 flex items-center justify-center rounded-full border-2 transition-all duration-200 ${
+                  <div className={`w-11 h-11 flex items-center justify-center rounded-full border-2 transition-all duration-200 ${
                     isActive
                       ? 'bg-blue-600 border-blue-600 text-white shadow-md'
                       : isCompleted
                         ? 'bg-green-500 border-green-500 text-white shadow-md'
-                        : 'bg-gray-100 border-gray-300 text-gray-400'
+                        : 'bg-gray-100 border-gray-200 text-gray-300'
                   }`}>
-                    {isCompleted ? <CheckCircle className="h-5 w-5" /> : <StepIcon className="h-5 w-5" />}
+                    {isCompleted ? <CheckCircle className="h-6 w-6" /> : <StepIcon className="h-6 w-6" />}
                   </div>
-                  <span className={`mt-1 text-xs ${isActive ? 'text-blue-700 font-semibold' : isCompleted ? 'text-green-600' : 'text-gray-500'}`}>{step.title}</span>
+                  <span className={`mt-2 text-sm ${isActive ? 'text-blue-700 font-semibold' : isCompleted ? 'text-green-600' : 'text-gray-400'}`}>{step.title}</span>
                 </div>
               );
             })}
           </div>
-          <div className="w-full bg-gray-200 rounded-full h-1 mt-4">
+          <div className="w-full bg-gray-200 rounded-full h-1.5 mt-6">
             <div
-              className="bg-blue-500 h-1 rounded-full transition-all duration-500"
+              className="bg-blue-500 h-1.5 rounded-full transition-all duration-500"
               style={{ width: `${(currentStep / totalSteps) * 100}%` }}
             />
           </div>
         </div>
 
         {/* Modal Content */}
-        <div className="flex-1 overflow-y-auto px-8 py-6 bg-white">
+        <div className="flex-1 overflow-y-auto px-12 py-8 bg-white">
           {renderStep()}
         </div>
 
         {/* Footer Navigation */}
-        <div className="flex items-center justify-between px-8 py-4 border-t border-gray-100 bg-gray-50">
+        <div className="flex items-center justify-between px-12 py-6 border-t border-gray-100 bg-gray-50">
           <Button
             type="button"
             variant="outline"
             onClick={handlePrevious}
             disabled={currentStep === 1}
-            className="px-6 py-2 rounded-lg text-base disabled:opacity-40"
+            className="px-8 py-3 rounded-full text-base disabled:opacity-40 border border-gray-200 bg-white hover:bg-gray-100 text-gray-600 hover:text-blue-700 font-medium transition-colors"
           >
-            <ArrowLeft className="h-5 w-5 mr-1" /> Previous
+            <ArrowLeft className="h-5 w-5 mr-2" /> Previous
           </Button>
-          <div className="flex items-center gap-2 text-sm text-gray-500">
+          <div className="flex items-center gap-3 text-base text-gray-400">
             Step {currentStep} of {totalSteps}
-            <span className={`ml-2 text-xs ${isStepValid(currentStep) ? 'text-green-600' : 'text-yellow-600'}`}>{isStepValid(currentStep) ? '✓ Ready' : '⚠ Required fields'}</span>
+            <span className={`ml-2 text-sm ${isStepValid(currentStep) ? 'text-green-600' : 'text-yellow-600'}`}>{isStepValid(currentStep) ? '✓ Ready' : '⚠ Required fields'}</span>
           </div>
           {currentStep === totalSteps ? (
             <Button
               onClick={handleSubmit}
               disabled={!formData.roundName.trim()}
-              className="px-6 py-2 rounded-lg text-base bg-green-600 hover:bg-green-700 text-white disabled:bg-gray-300 disabled:text-gray-500"
+              className="px-8 py-3 rounded-full text-base bg-green-600 hover:bg-green-700 text-white disabled:bg-gray-200 disabled:text-gray-400 font-semibold transition-colors"
             >
-              <CheckCircle className="h-5 w-5 mr-1" /> Create Round
+              <CheckCircle className="h-5 w-5 mr-2" /> Create Round
             </Button>
           ) : (
             <Button
               onClick={handleNext}
               disabled={!isStepValid(currentStep)}
-              className="px-6 py-2 rounded-lg text-base bg-blue-600 hover:bg-blue-700 text-white disabled:bg-gray-300 disabled:text-gray-500"
+              className="px-8 py-3 rounded-full text-base bg-blue-600 hover:bg-blue-700 text-white disabled:bg-gray-200 disabled:text-gray-400 font-semibold transition-colors"
             >
-              Next <ArrowRight className="h-5 w-5 ml-1" />
+              Next <ArrowRight className="h-5 w-5 ml-2" />
             </Button>
           )}
         </div>

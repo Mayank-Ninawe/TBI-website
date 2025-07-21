@@ -55,12 +55,11 @@ const DetailSection = ({
   children: React.ReactNode; 
   className?: string;
 }) => (
-  <div className={`relative bg-white backdrop-blur-lg rounded-2xl p-5 border-2 border-blue-200/60 shadow-lg hover:shadow-xl hover:border-blue-300/70 transition-all duration-300 ring-1 ring-blue-100/30 overflow-hidden ${className}`}>
-    <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 via-purple-500/3 to-indigo-500/5 rounded-2xl opacity-100"></div>
+  <div className={`relative bg-white rounded-2xl p-6 border border-gray-100 shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden ${className}`}>
     <div className="relative flex items-center gap-4 mb-5">
       <div className="relative">
-        <div className="absolute -inset-1 bg-gradient-to-r from-blue-500/20 to-indigo-500/20 rounded-xl blur opacity-50"></div>
-        <div className="relative p-3 rounded-xl bg-gradient-to-br from-blue-500/15 via-purple-500/10 to-indigo-500/15 border-2 border-white/70 shadow-md backdrop-blur-sm">
+        <div className="absolute -inset-1 bg-gradient-to-r from-blue-100 to-indigo-100 rounded-xl blur opacity-40"></div>
+        <div className="relative p-3 rounded-xl bg-gradient-to-br from-blue-50 via-purple-50 to-indigo-50 border border-white/70 shadow-md">
           <Icon className="h-5 w-5 text-blue-600 drop-shadow-sm" />
         </div>
       </div>
@@ -81,8 +80,7 @@ const DetailItem = ({
   icon?: any;
   className?: string;
 }) => (
-  <div className={`relative flex items-start gap-4 py-4 px-5 rounded-xl bg-white border border-blue-200/50 shadow-md hover:shadow-lg hover:border-blue-300/60 transition-all duration-300 backdrop-blur-sm ring-1 ring-blue-100/20 overflow-hidden ${className}`}>
-    <div className="absolute inset-0 bg-gradient-to-r from-blue-500/3 via-purple-500/2 to-indigo-500/3 rounded-xl opacity-100"></div>
+  <div className={`relative flex items-start gap-4 py-4 px-5 rounded-xl bg-white border border-gray-100 shadow-md hover:shadow-lg transition-all duration-300 overflow-hidden ${className}`}>
     {Icon && <Icon className="relative h-4 w-4 text-blue-500 mt-1 flex-shrink-0 drop-shadow-sm" />}
     <div className="relative flex-1 min-w-0">
       <div className="text-xs font-bold text-gray-600 mb-2 drop-shadow-sm uppercase tracking-wide">{label}</div>

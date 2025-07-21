@@ -344,33 +344,29 @@ export default function AdminStartupsPage() {
       <div className="container mx-auto px-4 py-8">
         <Card className="bg-white border border-gray-200 rounded-xl shadow-sm">
           <CardHeader>
-            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
-              <div>
-                <div className="flex items-center gap-4 mb-4">
-                  <div className="bg-blue-100 text-blue-700 border border-blue-200 rounded-lg w-12 h-12 flex items-center justify-center">
-                    <Rocket className="h-6 w-6" />
+            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-8 mb-8 px-2">
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-5 mb-5">
+                  <div className="bg-blue-50 text-blue-700 border border-blue-100 rounded-2xl w-14 h-14 flex items-center justify-center shadow-sm">
+                    <Rocket className="h-7 w-7" />
                   </div>
-                  <div className="min-w-0 flex-1">
-                    <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 leading-tight">
-                      Featured Startups Management
-                    </h1>
+                  <div>
+                    <h1 className="text-4xl font-extrabold text-gray-900 leading-tight tracking-tight mb-1">Featured Startups Management</h1>
+                    <p className="text-lg text-gray-500 font-medium leading-relaxed">Add, view, and manage startups showcased on the landing page.</p>
                   </div>
                 </div>
-                <p className="text-lg text-gray-600 font-medium mb-4 leading-relaxed">
-                  Add, view, and manage startups showcased on the landing page.
-                </p>
               </div>
-              <div className="flex items-center gap-2">
+              <div className="flex flex-col sm:flex-row items-center gap-3 mt-4 md:mt-0">
                 <Button 
                   onClick={fetchStartups}
-                  variant="outline" 
-                  size="sm"
+                  variant="outline"
+                  size="lg"
                   disabled={isLoading}
-                  className="border-gray-200 hover:border-gray-300 bg-white hover:bg-gray-50 text-gray-700 hover:text-gray-900 transition-colors"
+                  className="border border-gray-200 bg-white hover:bg-blue-50 text-blue-700 hover:text-blue-900 font-medium rounded-full shadow-none px-6 py-2 transition-colors focus-visible:ring-2 focus-visible:ring-blue-400"
                   suppressHydrationWarning
                 >
-                  <RefreshCw className={cn("h-4 w-4 transition-transform", isLoading && "animate-spin")} />
-                  <span className="ml-2 hidden sm:inline">Refresh</span>
+                  <RefreshCw className={cn("h-5 w-5 transition-transform", isLoading && "animate-spin")} />
+                  <span className="ml-2">Refresh</span>
                 </Button>
                 <Dialog open={isFormDialogOpen} onOpenChange={(isOpen) => {
                   setIsFormDialogOpen(isOpen);
@@ -381,49 +377,45 @@ export default function AdminStartupsPage() {
                 }}>
                   <DialogTrigger asChild>
                     <Button
-                      className="bg-blue-600 hover:bg-blue-700 text-white transition-colors shadow-sm"
+                      className="bg-blue-600 hover:bg-blue-700 text-white font-semibold text-lg rounded-full px-8 py-3 shadow-md transition-all focus-visible:ring-2 focus-visible:ring-blue-400"
+                      size="lg"
                       suppressHydrationWarning
                     >
-                      <PlusCircle className="mr-2 h-5 w-5" />
+                      <PlusCircle className="mr-3 h-6 w-6" />
                       <span>Add New Startup</span>
                     </Button>
                   </DialogTrigger>
-                          <DialogContent className="sm:max-w-[600px] bg-white border border-gray-200 rounded-xl shadow-lg">
-          <DialogHeader className="pb-6">
-            <DialogTitle className="text-xl font-semibold text-gray-900 flex items-center gap-3">
-              <div className="bg-blue-100 text-blue-700 border border-blue-200 rounded-lg w-10 h-10 flex items-center justify-center">
+                          <DialogContent className="sm:max-w-[600px] bg-white border border-gray-100 rounded-2xl shadow-xl px-6 py-8 flex flex-col gap-0">
+          <DialogHeader className="pb-4 border-b border-gray-100 mb-4">
+            <DialogTitle className="text-2xl font-bold text-gray-900 flex items-center gap-3">
+              <div className="bg-blue-50 text-blue-700 border border-blue-100 rounded-xl w-10 h-10 flex items-center justify-center">
                 {editingStartupData ? <Edit className="h-5 w-5" /> : <Rocket className="h-5 w-5" />}
               </div>
-              <span>
-                {editingStartupData ? "Edit Startup" : "Add New Startup"}
-              </span>
+              <span>{editingStartupData ? "Edit Startup" : "Add New Startup"}</span>
             </DialogTitle>
-            <DialogDescription className="text-gray-600">
-              {editingStartupData
-                ? "Update the details below to modify the startup information."
-                : "Fill in the details below to add a new startup."
-              }
+            <DialogDescription className="text-gray-500 text-base mt-1">
+              {editingStartupData ? "Update the details below to modify the startup information." : "Fill in the details below to add a new startup."}
             </DialogDescription>
           </DialogHeader>
                     <Form {...form}>
-                      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5 py-2 max-h-[65vh] overflow-y-auto px-1">
+                      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-7 py-2 max-h-[65vh] overflow-y-auto px-1">
                         <FormField
                           control={form.control}
                           name="name"
                           render={({ field }) => (
                             <FormItem>
-                              <FormLabel>Startup Name</FormLabel>
+                              <FormLabel className="font-semibold text-gray-900">Startup Name</FormLabel>
                               <FormControl>
                                 <div className="relative">
                                   <Input
                                     placeholder="e.g., Innovatech Solutions"
                                     {...field}
                                     disabled={isSubmitting}
-                                    className="bg-white border-gray-200 focus:border-blue-500 focus:ring-blue-200 rounded-lg pl-10 h-11 transition-colors"
+                                    className="bg-white border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 rounded-lg pl-10 h-12 text-base transition-colors"
                                     suppressHydrationWarning
                                   />
-                                  <div className="absolute left-3 top-3 text-blue-500">
-                                    <Rocket className="h-4 w-4" />
+                                  <div className="absolute left-3 top-3 text-blue-400">
+                                    <Rocket className="h-5 w-5" />
                                   </div>
                                 </div>
                               </FormControl>
@@ -548,7 +540,7 @@ export default function AdminStartupsPage() {
                           name="description"
                           render={({ field }) => (
                             <FormItem>
-                              <FormLabel>Description</FormLabel>
+                              <FormLabel className="font-semibold text-gray-900">Description</FormLabel>
                               <FormControl>
                                 <div className="relative">
                                   <Textarea
@@ -572,7 +564,7 @@ export default function AdminStartupsPage() {
                           name="websiteUrl"
                           render={({ field }) => (
                             <FormItem>
-                              <FormLabel>Website URL (Optional)</FormLabel>
+                              <FormLabel className="font-semibold text-gray-900">Website URL (Optional)</FormLabel>
                               <FormControl>
                                 <div className="relative">
                                   <Input
@@ -592,13 +584,13 @@ export default function AdminStartupsPage() {
                             </FormItem>
                           )}
                         />
-                        <DialogFooter className="mt-8 border-t border-gray-200 pt-5">
+                        <DialogFooter className="mt-8 border-t border-gray-100 pt-5 flex flex-col sm:flex-row gap-3 sm:gap-4 justify-end bg-white sticky bottom-0 z-10">
                           <Button
                             type="button"
                             variant="outline"
                             onClick={() => { setIsFormDialogOpen(false); form.reset(); setLogoPreview(null); }}
                             disabled={isSubmitting}
-                            className="border-gray-200 hover:border-gray-300 bg-white hover:bg-gray-50 text-gray-600 hover:text-gray-800 transition-colors"
+                            className="border border-gray-200 bg-white hover:bg-blue-50 text-gray-600 hover:text-blue-800 font-medium rounded-full px-6 py-2 transition-colors"
                             suppressHydrationWarning
                           >
                             Cancel
@@ -606,27 +598,18 @@ export default function AdminStartupsPage() {
                           <Button
                             type="submit"
                             disabled={isSubmitting}
-                            className="bg-blue-600 hover:bg-blue-700 text-white transition-colors shadow-sm"
+                            className="bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-full px-8 py-2 shadow-md transition-all"
                             suppressHydrationWarning
                           >
                             {isSubmitting ? (
-                              <span className="flex items-center">
-                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                              <span className="flex items-center gap-2">
+                                <Loader2 className="h-5 w-5 animate-spin" />
                                 <span>Processing...</span>
                               </span>
                             ) : (
-                              <span className="flex items-center gap-1.5">
-                                {editingStartupData ? (
-                                  <>
-                                    <Edit className="h-4 w-4" />
-                                    <span>Update Startup</span>
-                                  </>
-                                ) : (
-                                  <>
-                                    <PlusCircle className="h-4 w-4" />
-                                    <span>Add Startup</span>
-                                  </>
-                                )}
+                              <span className="flex items-center gap-2">
+                                {editingStartupData ? <Edit className="h-5 w-5" /> : <PlusCircle className="h-5 w-5" />}
+                                <span>{editingStartupData ? "Update Startup" : "Add Startup"}</span>
                               </span>
                             )}
                           </Button>
@@ -701,46 +684,30 @@ export default function AdminStartupsPage() {
             ) : (
               <div className="overflow-x-auto">
                 {filteredStartups.length > 0 ? (
-                                      <Table className="border-gray-200 bg-white rounded-lg shadow-sm overflow-hidden">
+                                      <Table className="border-separate border-spacing-0 w-full bg-white rounded-xl shadow-sm overflow-hidden">
                                           <TableHeader className="bg-gray-50">
-                        <TableRow className="border-gray-200 hover:bg-gray-100">
-                        <TableHead className="w-[80px] text-gray-700 font-semibold">
-                          <div className="flex items-center px-2 py-1 rounded-lg bg-blue-50/50 border border-blue-100/50 inline-flex">
-                            <UploadCloud className="h-3.5 w-3.5 mr-2 text-blue-600" />
-                            <span>Logo</span>
-                          </div>
-                        </TableHead>
-                        <TableHead className="text-gray-700 font-semibold">
-                          <div className="flex items-center px-2 py-1 rounded-lg bg-blue-50/50 border border-blue-100/50 inline-flex">
-                            <Rocket className="h-3.5 w-3.5 mr-2 text-blue-600" />
-                            <span>Name</span>
-                          </div>
-                        </TableHead>
-                        <TableHead className="text-gray-700 font-semibold">
-                          <div className="flex items-center px-2 py-1 rounded-lg bg-blue-50/50 border border-blue-100/50 inline-flex">
-                            <Info className="h-3.5 w-3.5 mr-2 text-blue-600" />
-                            <span>Description</span>
-                          </div>
-                        </TableHead>
-                        <TableHead className="text-right text-gray-700 font-semibold">
-                          <div className="flex items-center justify-end px-2 py-1 rounded-lg bg-blue-50/50 border border-blue-100/50 inline-flex ml-auto">
-                            <Settings className="h-3.5 w-3.5 mr-2 text-blue-600" />
-                            <span>Actions</span>
-                          </div>
-                        </TableHead>
+                        <TableRow className="border-b border-gray-100">
+                        <TableHead className="w-[80px] text-gray-700 font-semibold bg-gray-50">Logo</TableHead>
+                        <TableHead className="text-gray-700 font-semibold bg-gray-50">Name</TableHead>
+                        <TableHead className="text-gray-700 font-semibold bg-gray-50">Description</TableHead>
+                        <TableHead className="text-right text-gray-700 font-semibold bg-gray-50">Actions</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
                       <AnimatePresence>
-                        {filteredStartups.map((startup) => (
+                        {filteredStartups.map((startup, idx) => (
                           <motion.tr
                             key={startup.id}
                             variants={itemVariants}
                             initial="hidden"
                             animate="show"
                             exit={{ opacity: 0, x: -20 }}
-                            className="hover:bg-gradient-to-r hover:from-blue-50/70 hover:to-indigo-50/70 border-gray-200/50 transition-all duration-300 group"
-                            whileHover={{ scale: 1.005, y: -2 }}
+                            className={cn(
+                              "transition-all duration-300 group",
+                              idx % 2 === 0 ? "bg-white" : "bg-gray-50",
+                              "hover:bg-blue-50/60"
+                            )}
+                            whileHover={{ scale: 1.01, y: -1 }}
                           >
                             <TableCell>
                               <Avatar className="h-10 w-10 rounded-md shadow-sm">
@@ -752,19 +719,16 @@ export default function AdminStartupsPage() {
                                 </AvatarFallback>
                               </Avatar>
                             </TableCell>
-                            <TableCell className="font-medium text-gray-900">
-                              {startup.name}
-                            </TableCell>
-                            <TableCell className="text-gray-600 text-sm max-w-sm truncate">
-                              {startup.description}
-                            </TableCell>
+                            <TableCell className="font-medium text-gray-900">{startup.name}</TableCell>
+                            <TableCell className="text-gray-600 text-sm max-w-sm truncate">{startup.description}</TableCell>
                             <TableCell className="text-right">
-                              <div className="flex items-center justify-end space-x-2">
+                              <div className="flex items-center justify-end space-x-1.5">
                                 <Button
                                   variant="ghost"
                                   size="icon"
                                   onClick={() => handleOpenFormDialog(startup)}
-                                  className="text-gray-500 hover:text-blue-600 hover:bg-blue-50"
+                                  className="text-gray-500 hover:text-blue-600 hover:bg-blue-50 focus-visible:ring-2 focus-visible:ring-blue-400"
+                                  aria-label="Edit Startup"
                                   suppressHydrationWarning
                                 >
                                   <Edit className="h-4 w-4" />
@@ -773,17 +737,18 @@ export default function AdminStartupsPage() {
                                   variant="ghost"
                                   size="icon"
                                   onClick={() => handleDeleteClick(startup)}
-                                  className="text-gray-500 hover:text-red-600 hover:bg-red-50"
+                                  className="text-gray-500 hover:text-red-600 hover:bg-red-50 focus-visible:ring-2 focus-visible:ring-red-400"
+                                  aria-label="Delete Startup"
                                   suppressHydrationWarning
                                 >
                                   <Trash2 className="h-4 w-4" />
                                 </Button>
                                 {startup.websiteUrl && (
-                                  <a href={startup.websiteUrl} target="_blank" rel="noopener noreferrer">
+                                  <a href={startup.websiteUrl} target="_blank" rel="noopener noreferrer" aria-label="Open Website">
                                     <Button 
                                       variant="ghost" 
                                       size="icon" 
-                                      className="text-gray-500 hover:text-indigo-600 hover:bg-indigo-50"
+                                      className="text-gray-500 hover:text-indigo-600 hover:bg-indigo-50 focus-visible:ring-2 focus-visible:ring-indigo-400"
                                     >
                                       <ExternalLink className="h-4 w-4" />
                                     </Button>
@@ -797,15 +762,15 @@ export default function AdminStartupsPage() {
                     </TableBody>
                   </Table>
                 ) : (
-                  <div className="bg-white border border-gray-200 rounded-xl text-center py-16">
+                  <div className="bg-white border border-gray-100 rounded-2xl text-center py-20 px-6 shadow-sm">
                     <div className="max-w-md mx-auto">
-                      <div className="bg-blue-100 text-blue-700 border border-blue-200 rounded-full w-24 h-24 flex items-center justify-center mx-auto mb-6">
+                      <div className="bg-blue-50 text-blue-700 border border-blue-100 rounded-full w-24 h-24 flex items-center justify-center mx-auto mb-8 shadow-sm">
                         <Rocket className="h-10 w-10" />
                       </div>
-                      <h3 className="text-2xl font-bold text-gray-900 mb-2">
+                      <h3 className="text-2xl font-bold text-gray-900 mb-3">
                         {searchQuery ? 'No matching startups found' : 'No startups yet'}
                       </h3>
-                      <p className="text-lg text-gray-600 max-w-sm mx-auto mb-6">
+                      <p className="text-lg text-gray-500 max-w-sm mx-auto mb-8">
                         {searchQuery ? (
                           'Try a different search term or clear the search to see all startups.'
                         ) : (
@@ -815,7 +780,7 @@ export default function AdminStartupsPage() {
                       {searchQuery && (
                         <Button
                           onClick={() => setSearchQuery('')}
-                          className="mt-4 border border-gray-200 hover:border-blue-300 bg-white hover:bg-blue-50 text-gray-700 hover:text-blue-700 transition-colors rounded-lg font-medium"
+                          className="mt-4 border border-gray-200 hover:border-blue-300 bg-white hover:bg-blue-50 text-gray-700 hover:text-blue-700 transition-colors rounded-full font-medium px-6 py-2"
                           variant="outline"
                           suppressHydrationWarning
                         >
@@ -826,7 +791,7 @@ export default function AdminStartupsPage() {
                       {!searchQuery && (
                         <Button
                           onClick={() => setIsFormDialogOpen(true)}
-                          className="bg-blue-600 hover:bg-blue-700 text-white transition-colors shadow-sm rounded-lg"
+                          className="bg-blue-600 hover:bg-blue-700 text-white transition-colors shadow-md rounded-full px-8 py-3 text-lg font-semibold"
                           suppressHydrationWarning
                         >
                           <PlusCircle className="mr-2 h-5 w-5" />
@@ -861,12 +826,12 @@ export default function AdminStartupsPage() {
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5 py-2 max-h-[60vh] overflow-y-auto pr-2">
               <FormField control={form.control} name="name" render={({ field }) => (
-                <FormItem><FormLabel>Startup Company Name</FormLabel><FormControl><Input placeholder="e.g., Innovatech" {...field} disabled={isSubmitting} className="bg-white border-gray-200 focus:border-blue-500 focus:ring-blue-200 rounded-lg" /></FormControl><FormMessage /></FormItem>
+                <FormItem><FormLabel className="font-semibold text-gray-900">Startup Company Name</FormLabel><FormControl><Input placeholder="e.g., Innovatech" {...field} disabled={isSubmitting} className="bg-white border-gray-200 focus:border-blue-500 focus:ring-blue-200 rounded-lg" /></FormControl><FormMessage /></FormItem>
               )} />
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <FormField control={form.control} name="funnelSource" render={({ field }) => (
-                  <FormItem><FormLabel>Funnel Source</FormLabel><FormControl>
+                  <FormItem><FormLabel className="font-semibold text-gray-900">Funnel Source</FormLabel><FormControl>
                     <div className="relative">
                       <Select onValueChange={field.onChange} value={field.value} disabled={isSubmitting}>
                         <SelectTrigger className="bg-white border-gray-200 focus:border-blue-500 focus:ring-blue-200 rounded-lg h-11 pl-10 transition-colors">
@@ -890,7 +855,7 @@ export default function AdminStartupsPage() {
                 )} />
 
                 <FormField control={form.control} name="session" render={({ field }) => (
-                  <FormItem><FormLabel>Session</FormLabel><FormControl>
+                  <FormItem><FormLabel className="font-semibold text-gray-900">Session</FormLabel><FormControl>
                     <div className="relative">
                       <Select onValueChange={field.onChange} value={field.value} disabled={isSubmitting}>
                         <SelectTrigger className="bg-white border-gray-200 focus:border-blue-500 focus:ring-blue-200 rounded-lg h-11 pl-10 transition-colors">
@@ -913,7 +878,7 @@ export default function AdminStartupsPage() {
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <FormField control={form.control} name="monthYearOfIncubation" render={({ field }) => (
-                  <FormItem><FormLabel>Month Year of Incubation</FormLabel><FormControl>
+                  <FormItem><FormLabel className="font-semibold text-gray-900">Month Year of Incubation</FormLabel><FormControl>
                     <div className="relative group">
                       <Input 
                         placeholder="e.g., January 2024" 
@@ -929,7 +894,7 @@ export default function AdminStartupsPage() {
                 )} />
 
                 <FormField control={form.control} name="status" render={({ field }) => (
-                  <FormItem><FormLabel>Status</FormLabel><FormControl>
+                  <FormItem><FormLabel className="font-semibold text-gray-900">Status</FormLabel><FormControl>
                     <div className="relative">
                       <Select onValueChange={field.onChange} value={field.value} disabled={isSubmitting}>
                         <SelectTrigger className="bg-white border-gray-200 focus:border-blue-500 focus:ring-blue-200 rounded-lg h-11 pl-10 transition-colors">
@@ -977,7 +942,7 @@ export default function AdminStartupsPage() {
               </div>
 
               <FormField control={form.control} name="legalStatus" render={({ field }) => (
-                <FormItem><FormLabel>Legal Status</FormLabel><FormControl>
+                <FormItem><FormLabel className="font-semibold text-gray-900">Legal Status</FormLabel><FormControl>
                   <div className="relative">
                     <Select onValueChange={field.onChange} value={field.value} disabled={isSubmitting}>
                                               <SelectTrigger className="bg-white border-gray-200 focus:border-blue-500 focus:ring-blue-200 rounded-lg h-11 pl-10 transition-colors">
@@ -1002,7 +967,7 @@ export default function AdminStartupsPage() {
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <FormField control={form.control} name="rknecEmailId" render={({ field }) => (
-                  <FormItem><FormLabel>RKNEC Email ID</FormLabel><FormControl>
+                  <FormItem><FormLabel className="font-semibold text-gray-900">RKNEC Email ID</FormLabel><FormControl>
                     <div className="relative group">
                       <Input 
                         placeholder="example@rknec.edu" 
@@ -1018,7 +983,7 @@ export default function AdminStartupsPage() {
                 )} />
 
                 <FormField control={form.control} name="emailId" render={({ field }) => (
-                  <FormItem><FormLabel>Email ID</FormLabel><FormControl>
+                  <FormItem><FormLabel className="font-semibold text-gray-900">Email ID</FormLabel><FormControl>
                     <div className="relative group">
                       <Input 
                         placeholder="example@company.com" 
@@ -1036,7 +1001,7 @@ export default function AdminStartupsPage() {
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <FormField control={form.control} name="mobileNumber" render={({ field }) => (
-                  <FormItem><FormLabel>Mobile Number</FormLabel><FormControl>
+                  <FormItem><FormLabel className="font-semibold text-gray-900">Mobile Number</FormLabel><FormControl>
                     <div className="relative group">
                       <Input 
                         placeholder="+91 9876543210" 
@@ -1052,7 +1017,7 @@ export default function AdminStartupsPage() {
                 )} />
 
                 <FormField control={form.control} name="websiteUrl" render={({ field }) => (
-                  <FormItem><FormLabel>Website URL (Optional)</FormLabel><FormControl>
+                  <FormItem><FormLabel className="font-semibold text-gray-900">Website URL (Optional)</FormLabel><FormControl>
                     <div className="relative group">
                       <Input 
                         placeholder="https://startup.com" 
@@ -1254,7 +1219,7 @@ export default function AdminStartupsPage() {
                 </FormItem>
               )} />
               <FormField control={form.control} name="description" render={({ field }) => (
-                <FormItem><FormLabel>Description</FormLabel><FormControl>
+                <FormItem><FormLabel className="font-semibold text-gray-900">Description</FormLabel><FormControl>
                   <div className="relative">
                     <Textarea 
                       placeholder="Brief description of the startup..." 

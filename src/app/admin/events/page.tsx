@@ -268,25 +268,25 @@ export default function EventsPage() {
 
   return (
     <>
-      <div className="min-h-screen bg-gray-50 w-full flex flex-col items-center py-10 px-2">
-        <div className="w-full max-w-6xl mx-auto space-y-8">
+      <div className="min-h-screen bg-[#f7fafd] w-full flex flex-col items-center py-14 px-2">
+        <div className="w-full max-w-5xl mx-auto space-y-12">
           {/* Header Section */}
-          <div className="bg-white rounded-2xl shadow-md border border-gray-200 overflow-hidden">
-            <div className="px-8 pt-8 pb-4 flex flex-col md:flex-row md:items-center md:justify-between gap-6">
-              <div className="flex items-center gap-4">
-                <div className="bg-blue-100 rounded-full p-3 flex items-center justify-center">
-                  <CalendarDays className="h-6 w-6 text-blue-600" />
+          <header className="bg-white rounded-3xl shadow border border-gray-100 overflow-hidden mb-2">
+            <div className="px-10 pt-10 pb-7 flex flex-col md:flex-row md:items-center md:justify-between gap-8">
+              <div className="flex items-center gap-6">
+                <div className="bg-blue-50 rounded-full p-4 flex items-center justify-center shadow-sm">
+                  <CalendarDays className="h-7 w-7 text-blue-600" />
                 </div>
                 <div>
-                  <h1 className="admin-heading-2 mb-1">Events Management</h1>
-                  <p className="admin-caption">Create, manage and organize your upcoming events</p>
+                  <h1 className="text-3xl font-extrabold text-gray-900 mb-1 tracking-tight">Events Management</h1>
+                  <p className="text-base text-gray-500 font-medium">Create, manage, and organize your upcoming events</p>
                 </div>
               </div>
-              <div className="flex flex-col sm:flex-row gap-3 md:flex-shrink-0">
+              <div className="flex flex-col sm:flex-row gap-4 md:flex-shrink-0 items-center">
                 <Button 
                   variant="outline" 
                   onClick={fetchEvents}
-                  className="bg-white border border-blue-200 text-blue-700 hover:bg-blue-50 hover:border-blue-300 focus:ring-2 focus:ring-blue-200 rounded-lg shadow-sm px-5 py-2 font-medium transition"
+                  className="border-blue-200 text-blue-700 bg-white hover:bg-blue-50 hover:border-blue-300 focus:ring-blue-200 rounded-lg shadow-sm px-5 py-2 font-semibold transition"
                   suppressHydrationWarning
                 >
                   <RefreshCw className="mr-2 h-4 w-4" />
@@ -294,214 +294,178 @@ export default function EventsPage() {
                 </Button>
                 <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
                   <DialogTrigger asChild>
-                    <Button className="bg-blue-600 hover:bg-blue-700 text-white rounded-lg shadow px-5 py-2 font-medium transition w-full sm:w-auto" suppressHydrationWarning>
+                    <Button className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white rounded-lg shadow-lg px-5 py-2 font-semibold transition w-full sm:w-auto" suppressHydrationWarning>
                       <PlusCircle className="mr-2 h-5 w-5" /> Add New Event
                     </Button>
                   </DialogTrigger>
-                  <DialogContent className="sm:max-w-[600px] bg-white border border-gray-200 shadow-lg rounded-xl">
-                    <DialogHeader>
-                      <DialogTitle className="admin-heading-4 flex items-center gap-3">
-                        <div className="bg-blue-100 text-blue-700 border border-blue-200 rounded-lg w-10 h-10 flex items-center justify-center">
-                          📅
-                        </div>
-                        Create New Event
+                  <DialogContent className="sm:max-w-[480px] bg-white border-0 shadow-2xl rounded-3xl px-0 py-0">
+                    <DialogHeader className="px-8 pt-8 pb-2 text-left">
+                      <DialogTitle className="flex items-center gap-3 text-2xl font-extrabold tracking-tight text-gray-900">
+                        <span className="bg-gradient-to-br from-blue-100 to-indigo-100 text-blue-600 border border-blue-200 rounded-xl w-12 h-12 flex items-center justify-center shadow text-2xl">📅</span>
+                        <span>Create New Event</span>
                       </DialogTitle>
-                      <DialogDescription className="admin-body-small">
+                      <DialogDescription className="text-gray-400 mt-2 text-base font-normal">
                         Fill in the details below to add a new event to the platform.
                       </DialogDescription>
                     </DialogHeader>
-                    
-                    <Form {...form}>
-                      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 py-4 max-h-[70vh] overflow-y-auto pr-2 pl-3">
-                        <FormField
-                          control={form.control}
-                          name="title"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Title</FormLabel>
-                              <FormControl>
-                                <Input placeholder="Event title" {...field} disabled={isSubmitting} suppressHydrationWarning />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                        
-                        <FormField
-                          control={form.control}
-                          name="description"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Description</FormLabel>
-                              <FormControl>
-                                <Textarea 
-                                  placeholder="Event description" 
-                                  className="min-h-[100px]" 
-                                  {...field} 
-                                  disabled={isSubmitting}
-                                  suppressHydrationWarning 
-                                />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                        
-                        <div className="grid grid-cols-2 gap-4">
+                    <div className="px-8 pb-8 pt-2">
+                      <Form {...form}>
+                        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-7 max-h-[60vh] overflow-y-auto pr-2 custom-scrollbar">
                           <FormField
                             control={form.control}
-                            name="date"
+                            name="title"
                             render={({ field }) => (
                               <FormItem>
-                                <FormLabel>Date</FormLabel>
+                                <FormLabel className="block text-xs font-medium text-gray-700 tracking-widest mb-1 uppercase">Title</FormLabel>
                                 <FormControl>
-                                  <Input 
-                                    type="date" 
-                                    {...field} 
-                                    disabled={isSubmitting}
-                                    suppressHydrationWarning 
-                                  />
+                                  <Input placeholder="Event title" {...field} disabled={isSubmitting} className="ml-[10px] mr-[10px] w-full bg-white border border-gray-200 rounded-lg px-[10px] py-2 text-gray-900 placeholder-gray-400 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 focus:outline-none transition" suppressHydrationWarning />
                                 </FormControl>
-                                <FormMessage />
+                                <FormMessage className="text-xs text-red-500 mt-1" />
                               </FormItem>
                             )}
                           />
-                          
                           <FormField
                             control={form.control}
-                            name="time"
+                            name="description"
                             render={({ field }) => (
                               <FormItem>
-                                <FormLabel>Time</FormLabel>
+                                <FormLabel className="block text-xs font-medium text-gray-700 tracking-widest mb-1 uppercase">Description</FormLabel>
                                 <FormControl>
-                                  <Input 
-                                    type="time" 
-                                    {...field} 
-                                    disabled={isSubmitting}
-                                    suppressHydrationWarning 
-                                  />
+                                  <Textarea placeholder="Event description" {...field} disabled={isSubmitting} className="ml-[10px] mr-[10px] w-full bg-white border border-gray-200 rounded-lg px-[10px] py-3 text-gray-900 placeholder-gray-400 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 focus:outline-none transition min-h-[100px] resize-none" suppressHydrationWarning />
                                 </FormControl>
-                                <FormMessage />
+                                <FormMessage className="text-xs text-red-500 mt-1" />
                               </FormItem>
                             )}
                           />
-                        </div>
-                        
-                        <FormField
-                          control={form.control}
-                          name="venue"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Venue</FormLabel>
-                              <FormControl>
-                                <Input placeholder="Event location" {...field} disabled={isSubmitting} suppressHydrationWarning />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                        
-                        <FormField
-                          control={form.control}
-                          name="status"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Status</FormLabel>
-                              <Select 
-                                onValueChange={field.onChange} 
-                                defaultValue={field.value}
-                                disabled={isSubmitting}
-                              >
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                            <FormField
+                              control={form.control}
+                              name="date"
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel className="block text-xs font-medium text-gray-700 tracking-widest mb-1 uppercase">Date</FormLabel>
+                                  <FormControl>
+                                    <Input type="date" {...field} disabled={isSubmitting} className="ml-[10px] mr-[10px] w-full bg-white border border-gray-200 rounded-lg px-[10px] py-2 text-gray-900 placeholder-gray-400 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 focus:outline-none transition" suppressHydrationWarning />
+                                  </FormControl>
+                                  <FormMessage className="text-xs text-red-500 mt-1" />
+                                </FormItem>
+                              )}
+                            />
+                            <FormField
+                              control={form.control}
+                              name="time"
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel className="block text-xs font-medium text-gray-700 tracking-widest mb-1 uppercase">Time</FormLabel>
+                                  <FormControl>
+                                    <Input type="time" {...field} disabled={isSubmitting} className="ml-[10px] mr-[10px] w-full bg-white border border-gray-200 rounded-lg px-[10px] py-2 text-gray-900 placeholder-gray-400 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 focus:outline-none transition" suppressHydrationWarning />
+                                  </FormControl>
+                                  <FormMessage className="text-xs text-red-500 mt-1" />
+                                </FormItem>
+                              )}
+                            />
+                          </div>
+                          <FormField
+                            control={form.control}
+                            name="venue"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel className="block text-xs font-medium text-gray-700 tracking-widest mb-1 uppercase">Venue</FormLabel>
                                 <FormControl>
-                                  <SelectTrigger>
-                                    <SelectValue placeholder="Select status" />
-                                  </SelectTrigger>
+                                  <Input placeholder="Event location" {...field} disabled={isSubmitting} className="ml-[10px] mr-[10px] w-full bg-white border border-gray-200 rounded-lg px-[10px] py-2 text-gray-900 placeholder-gray-400 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 focus:outline-none transition" suppressHydrationWarning />
                                 </FormControl>
-                                <SelectContent>
-                                  <SelectItem value="draft">Draft</SelectItem>
-                                  <SelectItem value="published">Published</SelectItem>
-                                  <SelectItem value="archived">Archived</SelectItem>
-                                </SelectContent>
-                              </Select>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                        
-                        <FormField
-                          control={form.control}
-                          name="applyLink"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Apply Link (Optional)</FormLabel>
-                              <FormControl>
-                                <Input placeholder="https://example.com" {...field} disabled={isSubmitting} suppressHydrationWarning />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                        
-                        <FormField
-                          control={form.control}
-                          name="imageUrl"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Image URL (Optional)</FormLabel>
-                              <FormControl>
-                                <Input placeholder="https://example.com/image.jpg" {...field} disabled={isSubmitting} suppressHydrationWarning />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                        
-                        <DialogFooter className="mt-6">
-                          <Button
-                            type="button"
-                            variant="outline"
-                            onClick={() => setIsCreateDialogOpen(false)}
-                            disabled={isSubmitting}
-                            className="border-gray-200 hover:border-gray-300 bg-white hover:bg-gray-50 text-gray-700 hover:text-gray-900 transition-colors"
-                            suppressHydrationWarning
-                          >
-                            Cancel
-                          </Button>
-                          <Button
-                            type="submit"
-                            disabled={isSubmitting}
-                            className="bg-blue-600 hover:bg-blue-700 text-white transition-colors shadow-sm"
-                            suppressHydrationWarning
-                          >
-                            {isSubmitting ? (
-                              <>
-                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                Creating...
-                              </>
-                            ) : (
-                              'Create Event'
+                                <FormMessage className="text-xs text-red-500 mt-1" />
+                              </FormItem>
                             )}
-                          </Button>
-                        </DialogFooter>
-                      </form>
-                    </Form>
+                          />
+                          <FormField
+                            control={form.control}
+                            name="status"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel className="block text-xs font-medium text-gray-700 tracking-widest mb-1 uppercase">Status</FormLabel>
+                                <Select onValueChange={field.onChange} defaultValue={field.value} disabled={isSubmitting}>
+                                  <FormControl>
+                                    <SelectTrigger className="ml-[10px] mr-[10px] w-full bg-white border border-gray-200 rounded-lg px-[10px] py-2 text-gray-900 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 focus:outline-none transition">
+                                      <SelectValue placeholder="Select status" />
+                                    </SelectTrigger>
+                                  </FormControl>
+                                  <SelectContent className="bg-white border border-gray-100 rounded-lg shadow-lg py-2">
+                                    <SelectItem value="draft" className="py-2">Draft</SelectItem>
+                                    <SelectItem value="published" className="py-2">Published</SelectItem>
+                                    <SelectItem value="archived" className="py-2">Archived</SelectItem>
+                                  </SelectContent>
+                                </Select>
+                                <FormMessage className="text-xs text-red-500 mt-1" />
+                              </FormItem>
+                            )}
+                          />
+                          <FormField
+                            control={form.control}
+                            name="applyLink"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel className="block text-xs font-medium text-gray-700 tracking-widest mb-1 uppercase">Apply Link <span className='text-gray-400 font-normal'>(Optional)</span></FormLabel>
+                                <FormControl>
+                                  <Input placeholder="https://example.com" {...field} disabled={isSubmitting} className="ml-[10px] mr-[10px] w-full bg-white border border-gray-200 rounded-lg px-[10px] py-2 text-gray-900 placeholder-gray-400 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 focus:outline-none transition" suppressHydrationWarning />
+                                </FormControl>
+                                <FormMessage className="text-xs text-red-500 mt-1" />
+                              </FormItem>
+                            )}
+                          />
+                          <FormField
+                            control={form.control}
+                            name="imageUrl"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel className="block text-xs font-medium text-gray-700 tracking-widest mb-1 uppercase">Image URL <span className='text-gray-400 font-normal'>(Optional)</span></FormLabel>
+                                <FormControl>
+                                  <Input placeholder="https://example.com/image.jpg" {...field} disabled={isSubmitting} className="ml-[10px] mr-[10px] w-full bg-white border border-gray-200 rounded-lg px-[10px] py-2 text-gray-900 placeholder-gray-400 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 focus:outline-none transition" suppressHydrationWarning />
+                                </FormControl>
+                                <FormMessage className="text-xs text-red-500 mt-1" />
+                              </FormItem>
+                            )}
+                          />
+                          <DialogFooter className="mt-8 flex gap-3 justify-end">
+                            <Button
+                              type="button"
+                              variant="outline"
+                              onClick={() => setIsCreateDialogOpen(false)}
+                              disabled={isSubmitting}
+                              className="rounded-lg px-6 py-2 font-semibold border-gray-200 bg-white hover:bg-gray-50 text-gray-500 hover:text-gray-700 shadow-none"
+                              suppressHydrationWarning
+                            >
+                              Cancel
+                            </Button>
+                            <Button
+                              type="submit"
+                              disabled={isSubmitting}
+                              className="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white rounded-lg px-6 py-2 font-semibold shadow-lg"
+                              suppressHydrationWarning
+                            >
+                              {isSubmitting ? (<><Loader2 className="mr-2 h-4 w-4 animate-spin" />Creating...</>) : ('Create Event')}
+                            </Button>
+                          </DialogFooter>
+                        </form>
+                      </Form>
+                    </div>
                   </DialogContent>
                 </Dialog>
               </div>
             </div>
-          </div>
+          </header>
 
           {/* Search Section */}
-          <div className="bg-white rounded-2xl shadow border border-gray-200">
-            <div className="p-6">
-              <div className="relative max-w-md mx-auto md:mx-0">
-                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                  <Search className="h-5 w-5 text-blue-500" />
+          <section className="bg-white rounded-3xl shadow border border-gray-100 mb-6">
+            <div className="p-7">
+              <div className="relative max-w-lg mx-auto md:mx-0">
+                <div className="absolute inset-y-0 left-0 pl-5 flex items-center pointer-events-none">
+                  <Search className="h-5 w-5 text-blue-400" />
                 </div>
                 <Input
                   type="text"
                   placeholder="Search events by title, venue, or date..."
-                  className="pl-12 h-12 text-base border-gray-200 focus:border-blue-400 focus:ring-blue-300 shadow-sm rounded-xl bg-white focus:bg-white transition-all duration-300 w-full"
+                  className="pl-14 h-12 text-base border-gray-200 focus:border-blue-400 focus:ring-blue-200 shadow rounded-xl bg-white focus:bg-white transition-all duration-300 w-full"
                   value={searchQuery}
                   onChange={handleSearchChange}
                   suppressHydrationWarning
@@ -510,19 +474,19 @@ export default function EventsPage() {
                   <button
                     type="button"
                     onClick={() => setSearchQuery('')}
-                    className="absolute inset-y-0 right-0 pr-4 flex items-center hover:bg-gray-100 rounded-r-xl transition-colors"
+                    className="absolute inset-y-0 right-0 pr-5 flex items-center hover:bg-gray-100 rounded-r-xl transition-colors"
                     suppressHydrationWarning
                   >
-                    <X className="h-5 w-5 text-gray-400 hover:text-gray-600" />
+                    <X className="h-5 w-5 text-gray-300 hover:text-gray-500" />
                   </button>
                 )}
               </div>
             </div>
-          </div>
+          </section>
           
           {/* Content Section */}
-          <div className="bg-white border border-gray-200 rounded-xl shadow-sm">
-            <div className="p-6">
+          <section className="bg-white/95 backdrop-blur-xl border border-gray-100 rounded-3xl shadow-xl hover:shadow-2xl transition-all duration-300">
+            <div className="p-8">
               {loading ? (
                 <div className="space-y-6">
                   <div className="flex items-center gap-4 mb-6">
@@ -724,7 +688,7 @@ export default function EventsPage() {
                 </motion.div>
               )}
             </div>
-          </div>
+          </section>
         </div>
       </div>
     </>

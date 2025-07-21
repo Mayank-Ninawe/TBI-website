@@ -115,7 +115,6 @@ function AdminSubmissionsContent() {
     setSelectedSubmission(submission);
     setIsModalOpen(true);
   };
-
   const handleCloseModal = () => {
     setIsModalOpen(false);
     setSelectedSubmission(null);

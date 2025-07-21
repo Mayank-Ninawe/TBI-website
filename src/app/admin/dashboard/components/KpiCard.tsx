@@ -18,26 +18,21 @@ export function KpiCard({
   className = ''
 }: KpiCardProps) {
   return (
-    <div className={`admin-card group cursor-pointer admin-float ${className}`}>
-      <div className="relative z-10 p-6">
-        <div className="flex items-center justify-between mb-4">
-          <div className={`admin-icon admin-icon-${colorClass.includes('indigo') ? 'blue' : 
-                          colorClass.includes('green') || colorClass.includes('emerald') ? 'green' : 
-                          colorClass.includes('amber') || colorClass.includes('yellow') ? 'amber' : 
-                          colorClass.includes('red') || colorClass.includes('rose') ? 'red' : 'blue'}`}>
-            {icon}
-          </div>
-        </div>
-        <div>
-          <h3 className="text-sm font-medium uppercase tracking-wider text-muted-foreground">{title}</h3>
-          <p className="mt-2 text-3xl font-bold text-foreground">{value}</p>
-          {description && (
-            <p className="mt-2 text-sm font-medium text-muted-foreground">{description}</p>
-          )}
+    <div className={`bg-white rounded-3xl shadow-lg border border-gray-100 flex flex-col justify-between p-8 min-h-[170px] transition-shadow hover:shadow-xl ${className}`}>
+      <div className="relative z-10 mb-5">
+        <div className={`flex items-center justify-center w-14 h-14 rounded-2xl bg-gradient-to-br from-blue-50 to-indigo-50 ${colorClass}`}>
+          {icon}
         </div>
       </div>
+      <div>
+        <h3 className="text-xs font-semibold text-gray-600 tracking-widest uppercase mb-1">{title}</h3>
+        <p className="mt-1 text-4xl font-extrabold text-gray-900">{value}</p>
+        {description && (
+          <p className="mt-2 text-xs text-gray-500">{description}</p>
+        )}
+      </div>
       {/* Shimmer effect on hover */}
-      <div className="admin-shimmer absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-700 rounded-3xl"></div>
+      <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-700 rounded-3xl"></div>
     </div>
   );
 }

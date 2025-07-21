@@ -160,18 +160,18 @@ export function SubmissionsTable({
   }
 
   return (
-    <div className={`overflow-hidden bg-white border border-gray-200 rounded-xl shadow-sm ${className}`}>
+    <div className={`overflow-hidden bg-white border border-gray-100 rounded-3xl shadow-lg ${className}`}>
       <div className="overflow-x-auto">
         <table className="w-full text-sm">
-          <thead>
+          <thead className="sticky top-0 z-10">
             <tr className="border-b border-gray-100 bg-gray-50">
-              <th className="p-4 text-left admin-table-header">Applicant</th>
-              <th className="p-4 text-left admin-table-header">Company</th>
-              <th className="p-4 text-left admin-table-header">Domain</th>
-              <th className="p-4 text-left admin-table-header">Startup Idea</th>
-              <th className="p-4 text-left admin-table-header">Status</th>
-              <th className="p-4 text-left admin-table-header">Submitted</th>
-              <th className="p-4 text-right admin-table-header">Actions</th>
+              <th className="p-5 text-left text-xs font-semibold text-gray-600 uppercase tracking-widest">Applicant</th>
+              <th className="p-5 text-left text-xs font-semibold text-gray-600 uppercase tracking-widest">Company</th>
+              <th className="p-5 text-left text-xs font-semibold text-gray-600 uppercase tracking-widest">Domain</th>
+              <th className="p-5 text-left text-xs font-semibold text-gray-600 uppercase tracking-widest">Startup Idea</th>
+              <th className="p-5 text-left text-xs font-semibold text-gray-600 uppercase tracking-widest">Status</th>
+              <th className="p-5 text-left text-xs font-semibold text-gray-600 uppercase tracking-widest">Submitted</th>
+              <th className="p-5 text-right text-xs font-semibold text-gray-600 uppercase tracking-widest">Actions</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-50">
@@ -182,26 +182,26 @@ export function SubmissionsTable({
                   `transition-all duration-200 ${index % 2 === 0 ? 'bg-white' : 'bg-gray-50'} hover:bg-blue-50/40`
                 }
               >
-                <td className="p-4">
+                <td className="p-5">
                   <SubmissionDetailsModal submission={submission}>
                     <div className="flex items-center space-x-3 cursor-pointer hover:bg-blue-50 -m-2 p-2 rounded-lg transition-all duration-200">
-                      <div className="w-10 h-10 bg-blue-50 rounded-lg flex items-center justify-center text-blue-600 font-semibold text-sm shadow-sm">
+                      <div className="w-10 h-10 bg-blue-50 rounded-lg flex items-center justify-center text-blue-600 font-semibold text-base shadow-sm">
                         {(submission.fullName || submission.name)?.charAt(0)?.toUpperCase() || 'U'}
                       </div>
                       <div className="flex-1 min-w-0">
-                        <div className="admin-table-cell-primary truncate">
+                        <div className="font-semibold text-gray-900 truncate">
                           {submission.fullName || submission.name}
                         </div>
-                        <div className="admin-caption truncate">
+                        <div className="text-xs text-gray-500 truncate">
                           {submission.companyEmail || submission.email}
                         </div>
                       </div>
                     </div>
                   </SubmissionDetailsModal>
                 </td>
-                <td className="p-4 admin-table-cell">{submission.companyName || '-'}</td>
-                <td className="p-4 admin-table-cell">{submission.domain || '-'}</td>
-                <td className="p-4 text-gray-800 max-w-xs">
+                <td className="p-5 text-gray-800">{submission.companyName || '-'}</td>
+                <td className="p-5 text-gray-800">{submission.domain || '-'}</td>
+                <td className="p-5 text-gray-800 max-w-xs">
                   <IdeaCell 
                     idea={submission.idea || ''} 
                     submissionId={submission.id} 
@@ -210,19 +210,19 @@ export function SubmissionsTable({
                     temporaryPassword={submission.temporaryPassword} 
                   />
                 </td>
-                <td className="p-4">
+                <td className="p-5">
                   <StatusBadge status={submission.status as Status} />
                 </td>
-                <td className="p-4 admin-table-cell">{formatDate(submission.submittedAt)}</td>
-                <td className="p-4 text-right">
+                <td className="p-5 text-gray-800">{formatDate(submission.submittedAt)}</td>
+                <td className="p-5 text-right">
                   <div className="flex items-center justify-end gap-2">
                     <SubmissionDetailsModal submission={submission}>
                       <Button
                         variant="outline"
                         size="sm"
-                        className="h-8 px-3 admin-btn-text bg-blue-50 hover:bg-blue-100 text-blue-700 border-blue-200 hover:border-blue-300"
+                        className="h-8 px-3 bg-blue-50 hover:bg-blue-100 text-blue-700 border-blue-200 hover:border-blue-300 rounded-lg"
                       >
-                        <Eye className="h-3 w-3 mr-1" />
+                        <Eye className="h-4 w-4 mr-1" />
                         View
                       </Button>
                     </SubmissionDetailsModal>
