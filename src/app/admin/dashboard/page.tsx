@@ -109,26 +109,27 @@ export default function AdminDashboardPage() {
   };
 
   // --- Typography utility classes (for inline use) ---
-  const heading1 = "text-3xl sm:text-4xl font-extrabold tracking-tight text-gray-900";
-  const heading2 = "text-xl sm:text-2xl font-bold text-gray-900";
-  const label = "text-sm font-semibold text-gray-700 tracking-wide uppercase";
-  const metricValue = "text-3xl font-bold text-gray-900";
+  // Revamped for modern, accessible, enterprise-grade light theme
+  const heading1 = "text-4xl sm:text-5xl font-extrabold tracking-tight text-gray-900 leading-tight";
+  const heading2 = "text-2xl sm:text-3xl font-bold text-gray-900 mb-1";
+  const label = "text-xs font-semibold text-gray-600 tracking-widest uppercase mb-1";
+  const metricValue = "text-4xl font-extrabold text-gray-900";
   const metricDesc = "text-xs text-gray-500 mt-1";
-  const cardBase = "bg-white rounded-2xl shadow-md border border-gray-100 flex flex-col justify-between p-6 min-h-[170px]";
-  const cardIcon = "flex items-center justify-center w-12 h-12 rounded-xl mb-4";
-  const cardTrend = "absolute top-4 right-4 px-2 py-0.5 rounded-full text-xs font-semibold bg-white/80 border border-gray-200";
-  const cardGrid = "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6";
-  const section = "bg-white rounded-2xl shadow-md border border-gray-100 overflow-hidden";
-  const sectionHeader = "flex flex-col sm:flex-row sm:items-center sm:justify-between gap-6 p-8 border-b border-gray-50";
-  const sectionTitle = "flex items-center gap-4";
-  const sectionIcon = "w-12 h-12 bg-gradient-to-br from-blue-100 to-indigo-100 rounded-xl flex items-center justify-center shadow-sm";
-  const sectionStats = "flex items-center gap-3";
-  const statBox = "flex items-center gap-2 px-4 py-2 bg-gray-50 rounded-full border border-gray-100 text-gray-700 text-sm font-medium shadow-sm";
-  const statBoxBlue = "flex items-center gap-2 px-4 py-2 bg-blue-50 rounded-full border border-blue-100 text-blue-700 text-sm font-medium shadow-sm";
-  const mainBg = "min-h-screen bg-[#f7fafd]";
-  const mainWrap = "max-w-7xl mx-auto px-4 sm:px-8 py-8 space-y-10";
-  const btn = "rounded-full px-6 py-3 font-semibold text-white bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 shadow-sm hover:shadow-md border-0 focus:outline-none focus:ring-2 focus:ring-blue-200 transition";
-  const liveBtn = "flex items-center gap-2 px-4 py-2 bg-blue-50 rounded-full border border-blue-100 text-blue-700 text-sm font-medium shadow-sm hover:bg-blue-100 transition";
+  const cardBase = "bg-white rounded-3xl shadow-lg border border-gray-100 flex flex-col justify-between p-8 min-h-[170px] transition-shadow hover:shadow-xl";
+  const cardIcon = "flex items-center justify-center w-14 h-14 rounded-2xl mb-5 bg-gradient-to-br from-blue-50 to-indigo-50 text-blue-600";
+  const cardTrend = "absolute top-5 right-5 px-2 py-0.5 rounded-full text-xs font-semibold bg-white/90 border border-gray-200 shadow-sm";
+  const cardGrid = "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8";
+  const section = "bg-white rounded-3xl shadow-lg border border-gray-100 overflow-hidden";
+  const sectionHeader = "flex flex-col sm:flex-row sm:items-center sm:justify-between gap-8 p-10 border-b border-gray-50 bg-gray-50";
+  const sectionTitle = "flex items-center gap-5";
+  const sectionIcon = "w-14 h-14 bg-gray-100 text-gray-500 rounded-2xl flex items-center justify-center shadow-sm";
+  const sectionStats = "flex items-center gap-4";
+  const statBox = "flex items-center gap-2 px-5 py-2 bg-gray-50 rounded-full border border-gray-100 text-gray-700 text-sm font-medium shadow-sm";
+  const statBoxBlue = "flex items-center gap-2 px-5 py-2 bg-blue-50 rounded-full border border-blue-100 text-blue-700 text-sm font-medium shadow-sm";
+  const mainBg = "min-h-screen bg-gradient-to-br from-white via-blue-50 to-gray-50";
+  const mainWrap = "max-w-7xl mx-auto px-4 sm:px-8 py-12 space-y-14";
+  const btn = "rounded-full px-7 py-3 font-semibold text-white bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 shadow-md border-0 focus:outline-none focus:ring-2 focus:ring-blue-200 transition-all duration-200";
+  const liveBtn = "flex items-center gap-2 px-5 py-2 bg-green-50 rounded-full border border-green-100 text-green-700 text-sm font-medium shadow-sm hover:bg-green-100 transition-all duration-200";
 
   // --- MetricCard with unified layout ---
   type MetricCardProps = {
@@ -162,29 +163,30 @@ export default function AdminDashboardPage() {
       <div className={mainWrap}>
         {/* Header Section */}
         <div className={section + " flex flex-col gap-0"}>
-          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-8 p-8">
-            <div className="space-y-3">
+          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-10 p-10">
+            <div className="space-y-4">
               <h1 className={heading1}>
                 Dashboard Overview
               </h1>
-              <p className="text-base text-gray-600 font-normal">
-                Monitor and manage your application submissions
+              <p className="text-lg text-gray-600 font-normal max-w-2xl">
+                Monitor and manage your application submissions with real-time insights and streamlined controls.
               </p>
             </div>
-            <div className="flex items-center gap-4">
-              <button className={liveBtn.replace('text-blue-700', 'text-gray-700').replace('hover:bg-blue-100', 'hover:bg-gray-100').replace('border-blue-100', 'border-gray-200').replace('bg-blue-50', 'bg-gray-100')} type="button">
+            <div className="flex items-center gap-5">
+              <button className={liveBtn} type="button" aria-label="Live Updates">
                 <span className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></span>
                 Live Updates
               </button>
               <Button
                 onClick={fetchSubmissions}
                 disabled={isLoading}
-                className={btn.replace('text-white', 'text-gray-900').replace('bg-gradient-to-r from-blue-600 to-indigo-600', 'bg-gray-200').replace('hover:from-blue-700 hover:to-indigo-700', 'hover:bg-gray-300')}
+                className={btn}
+                aria-label="Refresh Data"
               >
                 {isLoading ? (
-                  <Loader2 className="w-5 h-5 animate-spin mr-2 text-gray-600" />
+                  <Loader2 className="w-5 h-5 animate-spin mr-2 text-white" />
                 ) : (
-                  <RefreshCw className="w-5 h-5 mr-2 group-hover:rotate-180 transition-transform duration-500 text-gray-600" />
+                  <RefreshCw className="w-5 h-5 mr-2 group-hover:rotate-180 transition-transform duration-500 text-white" />
                 )}
                 Refresh Data
               </Button>
@@ -229,24 +231,24 @@ export default function AdminDashboardPage() {
         </div>
 
         {/* Submissions Table Section */}
-        <div className={section}>
+        <div className={section + " mt-10"}>
           <div className={sectionHeader}>
             <div className={sectionTitle}>
-              <div className={sectionIcon.replace('bg-gradient-to-br from-blue-100 to-indigo-100', 'bg-gray-100 text-gray-500')}>
-                <BarChart3 className="w-6 h-6" />
+              <div className={sectionIcon}>
+                <BarChart3 className="w-7 h-7" />
               </div>
               <div>
                 <h2 className={heading2}>Application Management</h2>
-                <div className="text-sm text-gray-600 font-normal">Review and process submissions</div>
+                <div className="text-base text-gray-600 font-normal">Review and process submissions efficiently</div>
               </div>
             </div>
             <div className={sectionStats}>
-              <div className={statBox.replace('text-blue-700', 'text-gray-700').replace('bg-blue-50', 'bg-gray-100').replace('border-blue-100', 'border-gray-200')}>
+              <div className={statBox}>
                 <Activity className="w-4 h-4 text-gray-600" />
                 {submissions.length} Total
               </div>
-              <div className={statBoxBlue.replace('text-blue-700', 'text-gray-700').replace('bg-blue-50', 'bg-gray-100').replace('border-blue-100', 'border-gray-200')}>
-                <Users className="w-4 h-4 text-gray-600" />
+              <div className={statBoxBlue}>
+                <Users className="w-4 h-4 text-blue-700" />
                 {kpiData.pending} Pending
               </div>
             </div>

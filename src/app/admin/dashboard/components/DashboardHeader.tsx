@@ -19,26 +19,26 @@ export function DashboardHeader({
   children
 }: DashboardHeaderProps) {
   return (
-    <div className={`p-6 border-b border-neutral-800/50 ${className}`}>
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+    <div className={`bg-white p-8 border-b border-gray-100 rounded-t-3xl shadow-md ${className}`}>
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-6">
         <div>
-          <h2 className="text-2xl font-bold text-white flex items-center">
-            <FileTextIcon className="mr-3 h-7 w-7 text-indigo-400" />
+          <h2 className="text-3xl font-bold text-gray-900 flex items-center">
+            <FileTextIcon className="mr-3 h-8 w-8 text-blue-500" />
             {title}
           </h2>
           {description && (
-            <p className="text-sm text-neutral-400 mt-1">
+            <p className="text-base text-gray-500 mt-2">
               {description}
             </p>
           )}
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-3">
           {children}
           {onRefresh && (
             <Button 
               variant="outline" 
               size="sm" 
-              className="border-neutral-700 hover:bg-neutral-800/50 text-neutral-300 hover:text-white"
+              className="border-gray-200 hover:bg-gray-100 text-gray-700 hover:text-blue-700"
               onClick={onRefresh}
               disabled={isLoading}
             >

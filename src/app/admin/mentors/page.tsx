@@ -355,27 +355,27 @@ Type "DELETE" to confirm:`;
 
   return (
     <>
-      <div className="min-h-screen bg-gray-50 w-full flex flex-col items-center py-10 px-2">
-        <div className="w-full max-w-6xl mx-auto space-y-8">
+      <div className="min-h-screen w-full flex flex-col items-center bg-gradient-to-br from-white via-blue-50 to-gray-50 py-12 px-4">
+        <div className="w-full max-w-6xl mx-auto space-y-10">
           {/* Header Section */}
-          <div className="bg-white rounded-2xl shadow-md border border-gray-200 overflow-hidden">
-            <div className="px-8 pt-8 pb-4 flex flex-col md:flex-row md:items-center md:justify-between gap-6">
-              <div className="flex items-center gap-4">
-                <div className="bg-blue-100 rounded-full p-3 flex items-center justify-center">
-                  <Users className="h-6 w-6 text-blue-600" />
+          <section className="bg-white rounded-3xl shadow-lg border border-gray-100 overflow-hidden mb-2">
+            <div className="px-10 pt-10 pb-6 flex flex-col md:flex-row md:items-center md:justify-between gap-8">
+              <div className="flex items-center gap-6">
+                <div className="bg-blue-100 rounded-full p-4 flex items-center justify-center shadow-md">
+                  <Users className="h-7 w-7 text-blue-600" />
                 </div>
                 <div>
-                  <h1 className="admin-heading-2 mb-1">Mentors Management</h1>
-                  <p className="admin-caption">Manage and organize your team of expert mentors</p>
+                  <h1 className="text-3xl font-extrabold text-gray-900 mb-1 tracking-tight">Mentors Management</h1>
+                  <p className="text-base text-gray-500 font-medium">Manage and organize your team of expert mentors</p>
                 </div>
               </div>
-
-              <div className="flex gap-3">
-                <Button 
+              {/* Action buttons and dialog will be updated in the next step */}
+              <div className="flex flex-col sm:flex-row gap-4 md:flex-shrink-0 items-center">
+                <Button
                   onClick={handleMigration}
                   disabled={isMigrating}
                   variant="outline"
-                  className="border-amber-600 text-amber-400 hover:bg-amber-600/10 hover:text-amber-300" 
+                  className="border-amber-300 text-amber-500 bg-white hover:bg-amber-50 hover:text-amber-600 focus:ring-amber-200 rounded-lg shadow-sm px-5 py-2 font-semibold transition"
                   suppressHydrationWarning
                 >
                   {isMigrating ? (
@@ -390,13 +390,10 @@ Type "DELETE" to confirm:`;
                     </>
                   )}
                 </Button>
-              </div>
-
-              <div className="flex flex-col sm:flex-row gap-3 md:flex-shrink-0">
-                <Button 
-                  variant="outline" 
+                <Button
+                  variant="outline"
                   onClick={fetchMentors}
-                  className="bg-white border border-blue-200 text-blue-700 hover:bg-blue-50 hover:border-blue-300 focus:ring-2 focus:ring-blue-200 rounded-lg shadow-sm px-5 py-2 font-medium transition"
+                  className="border-blue-200 text-blue-700 bg-white hover:bg-blue-50 hover:border-blue-300 focus:ring-blue-200 rounded-lg shadow-sm px-5 py-2 font-semibold transition"
                   suppressHydrationWarning
                 >
                   <RefreshCw className="mr-2 h-4 w-4" />
@@ -404,216 +401,158 @@ Type "DELETE" to confirm:`;
                 </Button>
                 <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
                   <DialogTrigger asChild>
-                    <Button className="bg-blue-600 hover:bg-blue-700 text-white rounded-lg shadow px-5 py-2 font-medium transition w-full sm:w-auto" suppressHydrationWarning>
+                    <Button className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white rounded-lg shadow-lg px-5 py-2 font-semibold transition w-full sm:w-auto" suppressHydrationWarning>
                       <PlusCircle className="mr-2 h-5 w-5" /> Add New Mentor
                     </Button>
                   </DialogTrigger>
-                  <DialogContent className="sm:max-w-[600px] bg-white/95 backdrop-blur-xl border border-gray-200/50 shadow-lg rounded-2xl">
-                    <DialogHeader>
-                      <DialogTitle className="admin-heading-3 bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent flex items-center gap-2">
-                        <div className="bg-gradient-to-r from-blue-100 to-indigo-100 text-blue-700 border border-blue-200 rounded-lg w-10 h-10 flex items-center justify-center shadow-sm">
+                  <DialogContent className="sm:max-w-[600px] bg-white/95 backdrop-blur-xl border border-gray-100 shadow-2xl rounded-3xl p-0">
+                    <DialogHeader className="px-8 pt-8 pb-2">
+                      <DialogTitle className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent flex items-center gap-3">
+                        <div className="bg-gradient-to-r from-blue-100 to-indigo-100 text-blue-700 border border-blue-200 rounded-lg w-12 h-12 flex items-center justify-center shadow">
                           👨‍🏫
                         </div>
                         Add New Mentor
                       </DialogTitle>
-                      <DialogDescription className="text-gray-400">
+                      <DialogDescription className="text-gray-400 mt-1">
                         Fill in the details below to add a new mentor and create their login account.
                       </DialogDescription>
                     </DialogHeader>
-                    <Form {...form}>
-                      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 py-4 max-h-[70vh] overflow-y-auto pr-2 pl-3">
-                        <FormField
-                          control={form.control}
-                          name="name"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Full Name</FormLabel>
-                              <FormControl>
-                                <Input placeholder="e.g., Dr. Jane Doe" {...field} disabled={isSubmitting} suppressHydrationWarning />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                        <FormField
-                          control={form.control}
-                          name="designation"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Designation</FormLabel>
-                              <FormControl>
-                                <Input placeholder="e.g., Lead Innovator, Acme Corp" {...field} disabled={isSubmitting} suppressHydrationWarning />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                        <FormField
-                          control={form.control}
-                          name="expertise"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Area of Expertise/Mentorship</FormLabel>
-                              <FormControl>
-                                <Input placeholder="e.g., AI & Machine Learning" {...field} disabled={isSubmitting} suppressHydrationWarning />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                        <FormField
-                          control={form.control}
-                          name="description"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Description / Bio</FormLabel>
-                              <FormControl>
-                                <Textarea
-                                  placeholder="Brief description of the mentor's background and experience..."
-                                  {...field}
-                                  rows={4}
-                                  disabled={isSubmitting}
-                                  suppressHydrationWarning
-                                />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                        <FormField
-                          control={form.control}
-                          name="email"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Email Address (for login)</FormLabel>
-                              <FormControl>
-                                <Input
-                                  type="email"
-                                  placeholder="mentor@example.com"
-                                  {...field}
-                                  disabled={isSubmitting}
-                                  suppressHydrationWarning
-                                />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                        <FormField
-                          control={form.control}
-                          name="password"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Set Temporary Password</FormLabel>
-                              <FormControl>
-                                <Input
-                                  type="password"
-                                  placeholder="Enter a secure temporary password"
-                                  {...field}
-                                  disabled={isSubmitting}
-                                  suppressHydrationWarning
-                                />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                        <FormField
-                          control={form.control}
-                          name="profilePictureUrl"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Profile Picture</FormLabel>
-                              <FormControl>
-                                <ImageUploadComponent
-                                  value={field.value}
-                                  onChange={(imageUrl) => {
-                                    field.onChange(imageUrl || '');
-                                  }}
-                                  placeholder="Upload profile picture or enter URL"
-                                  options={{
-                                    maxSizeBytes: 3 * 1024 * 1024, // 3MB
-                                    allowedTypes: ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'],
-                                    quality: 0.8,
-                                    maxWidth: 500,
-                                    maxHeight: 500,
-                                  }}
-                                  onUploadComplete={(result) => {
-                                    if (result.success) {
-                                      console.log('Profile picture uploaded successfully:', result.metadata);
-                                    }
-                                  }}
-                                  previewClassName="w-24 h-24 rounded-full"
-                                />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                        <FormField
-                          control={form.control}
-                          name="linkedinUrl"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>LinkedIn Profile URL (Optional)</FormLabel>
-                              <FormControl>
-                                <Input
-                                  placeholder="https://linkedin.com/in/username"
-                                  {...field}
-                                  value={field.value || ''}
-                                  disabled={isSubmitting}
-                                  suppressHydrationWarning
-                                />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                        <DialogFooter className="mt-6">
-                          <Button
-                            type="button"
-                            variant="outline"
-                            onClick={() => setIsCreateDialogOpen(false)}
-                            disabled={isSubmitting}
-                            suppressHydrationWarning
-                          >
-                            Cancel
-                          </Button>
-                          <Button
-                            type="submit"
-                            disabled={isSubmitting}
-                            className="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700"
-                            suppressHydrationWarning
-                          >
-                            {isSubmitting ? (
-                              <>
-                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                Adding...
-                              </>
-                            ) : (
-                              'Add Mentor'
+                    <div className="px-8 pb-8 pt-2">
+                      <Form {...form}>
+                        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5 max-h-[60vh] overflow-y-auto pr-2">
+                          {/* All form fields remain unchanged, only classNames for spacing and clarity are updated below */}
+                          <FormField
+                            control={form.control}
+                            name="name"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel className="font-semibold text-gray-700">Full Name</FormLabel>
+                                <FormControl>
+                                  <Input placeholder="e.g., Dr. Jane Doe" {...field} disabled={isSubmitting} className="rounded-lg border-gray-200 focus:border-blue-400 focus:ring-blue-200 bg-white" suppressHydrationWarning />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
                             )}
-                          </Button>
-                        </DialogFooter>
-                      </form>
-                    </Form>
+                          />
+                          <FormField
+                            control={form.control}
+                            name="designation"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel className="font-semibold text-gray-700">Designation</FormLabel>
+                                <FormControl>
+                                  <Input placeholder="e.g., Lead Innovator, Acme Corp" {...field} disabled={isSubmitting} className="rounded-lg border-gray-200 focus:border-blue-400 focus:ring-blue-200 bg-white" suppressHydrationWarning />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          <FormField
+                            control={form.control}
+                            name="expertise"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel className="font-semibold text-gray-700">Area of Expertise/Mentorship</FormLabel>
+                                <FormControl>
+                                  <Input placeholder="e.g., AI & Machine Learning" {...field} disabled={isSubmitting} className="rounded-lg border-gray-200 focus:border-blue-400 focus:ring-blue-200 bg-white" suppressHydrationWarning />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          <FormField
+                            control={form.control}
+                            name="description"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel className="font-semibold text-gray-700">Description / Bio</FormLabel>
+                                <FormControl>
+                                  <Textarea placeholder="Brief description of the mentor's background and experience..." {...field} rows={4} disabled={isSubmitting} className="rounded-lg border-gray-200 focus:border-blue-400 focus:ring-blue-200 bg-white" suppressHydrationWarning />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          <FormField
+                            control={form.control}
+                            name="email"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel className="font-semibold text-gray-700">Email Address (for login)</FormLabel>
+                                <FormControl>
+                                  <Input type="email" placeholder="mentor@example.com" {...field} disabled={isSubmitting} className="rounded-lg border-gray-200 focus:border-blue-400 focus:ring-blue-200 bg-white" suppressHydrationWarning />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          <FormField
+                            control={form.control}
+                            name="password"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel className="font-semibold text-gray-700">Set Temporary Password</FormLabel>
+                                <FormControl>
+                                  <Input type="password" placeholder="Enter a secure temporary password" {...field} disabled={isSubmitting} className="rounded-lg border-gray-200 focus:border-blue-400 focus:ring-blue-200 bg-white" suppressHydrationWarning />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          <FormField
+                            control={form.control}
+                            name="profilePictureUrl"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel className="font-semibold text-gray-700">Profile Picture</FormLabel>
+                                <FormControl>
+                                  <ImageUploadComponent value={field.value} onChange={(imageUrl) => { field.onChange(imageUrl || ''); }} placeholder="Upload profile picture or enter URL" options={{ maxSizeBytes: 3 * 1024 * 1024, allowedTypes: ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'], quality: 0.8, maxWidth: 500, maxHeight: 500, }} onUploadComplete={(result) => { if (result.success) { console.log('Profile picture uploaded successfully:', result.metadata); } }} previewClassName="w-24 h-24 rounded-full" />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          <FormField
+                            control={form.control}
+                            name="linkedinUrl"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel className="font-semibold text-gray-700">LinkedIn Profile URL (Optional)</FormLabel>
+                                <FormControl>
+                                  <Input placeholder="https://linkedin.com/in/username" {...field} value={field.value || ''} disabled={isSubmitting} className="rounded-lg border-gray-200 focus:border-blue-400 focus:ring-blue-200 bg-white" suppressHydrationWarning />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          <DialogFooter className="mt-8 flex gap-3 justify-end">
+                            <Button type="button" variant="outline" onClick={() => setIsCreateDialogOpen(false)} disabled={isSubmitting} className="rounded-lg px-6 py-2 font-semibold border-gray-200 bg-white hover:bg-gray-50" suppressHydrationWarning>
+                              Cancel
+                            </Button>
+                            <Button type="submit" disabled={isSubmitting} className="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white rounded-lg px-6 py-2 font-semibold shadow-lg" suppressHydrationWarning>
+                              {isSubmitting ? (<><Loader2 className="mr-2 h-4 w-4 animate-spin" />Adding...</>) : ('Add Mentor')}
+                            </Button>
+                          </DialogFooter>
+                        </form>
+                      </Form>
+                    </div>
                   </DialogContent>
                 </Dialog>
               </div>
             </div>
-          </div>
+          </section>
 
           {/* Search Section */}
-          <div className="bg-white rounded-2xl shadow border border-gray-200">
-            <div className="p-6">
-              <div className="relative max-w-md mx-auto md:mx-0">
-                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                  <Search className="h-5 w-5 text-blue-500" />
+          <section className="bg-white rounded-3xl shadow border border-gray-100 mb-6">
+            <div className="p-7">
+              <div className="relative max-w-lg mx-auto md:mx-0">
+                <div className="absolute inset-y-0 left-0 pl-5 flex items-center pointer-events-none">
+                  <Search className="h-5 w-5 text-blue-400" />
                 </div>
                 <Input
                   type="text"
                   placeholder="Search mentors by name, email, or expertise..."
-                  className="pl-12 h-12 text-base border-gray-200 focus:border-blue-400 focus:ring-blue-300 shadow-sm rounded-xl bg-white focus:bg-white transition-all duration-300 w-full"
+                  className="pl-14 h-12 text-base border-gray-200 focus:border-blue-400 focus:ring-blue-200 shadow rounded-xl bg-white focus:bg-white transition-all duration-300 w-full"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   suppressHydrationWarning
@@ -622,19 +561,19 @@ Type "DELETE" to confirm:`;
                   <button
                     type="button"
                     onClick={() => setSearchQuery('')}
-                    className="absolute inset-y-0 right-0 pr-4 flex items-center hover:bg-gray-100 rounded-r-xl transition-colors"
+                    className="absolute inset-y-0 right-0 pr-5 flex items-center hover:bg-gray-100 rounded-r-xl transition-colors"
                     suppressHydrationWarning
                   >
-                    <X className="h-5 w-5 text-gray-400 hover:text-gray-600" />
+                    <X className="h-5 w-5 text-gray-300 hover:text-gray-500" />
                   </button>
                 )}
               </div>
             </div>
-          </div>
+          </section>
 
           {/* Content Section */}
-          <div className="bg-white/90 backdrop-blur-xl border border-gray-200/50 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300">
-            <div className="p-6">
+          <section className="bg-white/95 backdrop-blur-xl border border-gray-100 rounded-3xl shadow-xl hover:shadow-2xl transition-all duration-300">
+            <div className="p-8">
               {isLoading ? (
                 <div className="space-y-6">
                   <div className="flex items-center gap-4 mb-6">
@@ -684,8 +623,8 @@ Type "DELETE" to confirm:`;
                 >
                   {filteredMentors.length > 0 ? (
                     <>
-                      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
-                        <h2 className="text-xl font-bold text-gray-800 flex items-center gap-2">
+                      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-6 mb-8">
+                        <h2 className="text-2xl font-bold text-gray-900 flex items-center gap-3 tracking-tight">
                           {searchQuery ? (
                             <>
                               <Search className="h-5 w-5 text-blue-600" />
@@ -698,20 +637,20 @@ Type "DELETE" to confirm:`;
                             </>
                           )}
                         </h2>
-                        <div className="bg-green-100/80 text-green-700 border border-green-200/50 hover:bg-green-200/70 px-3 py-1.5 rounded-full font-semibold text-sm flex items-center">
-                          <span className="mr-1">✨</span>
+                        <div className="bg-green-50 text-green-700 border border-green-200 px-4 py-2 rounded-full font-semibold text-base flex items-center shadow-sm">
+                          <span className="mr-2">✨</span>
                           {filteredMentors.length} {filteredMentors.length === 1 ? 'Result' : 'Results'}
                         </div>
                       </div>
-                      <div className="grid gap-6">
+                      <div className="grid gap-8">
                         {filteredMentors.map((mentor, index) => (
                           <motion.div
                             key={mentor.id}
                             variants={item}
-                            className="bg-white/95 backdrop-blur-xl border border-gray-200/50 rounded-2xl shadow-md hover:shadow-xl hover:-translate-y-1 transition-all duration-300"
+                            className="bg-white border border-gray-100 rounded-2xl shadow-lg hover:shadow-2xl hover:-translate-y-1 transition-all duration-300"
                           >
                             <div
-                              className="p-6 cursor-pointer"
+                              className="p-3 md:p-4 cursor-pointer group"
                               role="button"
                               tabIndex={0}
                               onClick={() => toggleMentorExpansion(mentor.id)}
@@ -722,41 +661,41 @@ Type "DELETE" to confirm:`;
                                 }
                               }}
                             >
-                              <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
-                                <div className="flex items-center space-x-4 min-w-0 flex-1">
+                              <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3 md:gap-4">
+                                <div className="flex items-center gap-3 md:gap-4 min-w-0 flex-1">
                                   <div className="relative flex-shrink-0">
-                                    <Avatar className="h-16 w-16 ring-2 ring-blue-100 shadow-md">
+                                    <Avatar className="h-12 w-12 ring-2 ring-blue-100 shadow">
                                       {mentor.profilePictureUrl ? (
                                         <AvatarImage src={mentor.profilePictureUrl} alt={mentor.name} />
                                       ) : null}
-                                      <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-600 text-white text-lg font-bold">
+                                      <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-600 text-white text-base font-bold">
                                         {getInitials(mentor.name)}
                                       </AvatarFallback>
                                     </Avatar>
-                                    <div className="absolute -bottom-1 -right-1 bg-green-100/80 text-green-700 border border-green-200/50 rounded-full w-6 h-6 flex items-center justify-center text-xs font-bold shadow-sm">
+                                    <div className="absolute -bottom-1.5 -right-1.5 bg-green-50 text-green-700 border border-green-200 rounded-full w-5 h-5 flex items-center justify-center text-xs font-bold shadow">
                                       ✓
                                     </div>
                                   </div>
                                   <div className="min-w-0 flex-1">
-                                    <h3 className="text-xl font-bold text-gray-800 truncate">{mentor.name}</h3>
-                                    <p className="text-base text-gray-600 font-medium truncate">{mentor.designation}</p>
-                                    <div className="flex items-center gap-2 mt-2">
-                                      <div className="bg-blue-100/80 text-blue-700 border border-blue-200/50 rounded-full w-5 h-5 flex items-center justify-center text-xs flex-shrink-0">
+                                    <h3 className="text-lg font-bold text-gray-900 truncate">{mentor.name}</h3>
+                                    <p className="text-sm text-gray-500 font-medium truncate">{mentor.designation}</p>
+                                    <div className="flex items-center gap-2 mt-1">
+                                      <div className="bg-blue-50 text-blue-600 border border-blue-100 rounded-full w-5 h-5 flex items-center justify-center text-xs flex-shrink-0">
                                         🎯
                                       </div>
-                                      <span className="text-sm text-gray-500 truncate">{mentor.expertise}</span>
+                                      <span className="text-xs text-gray-400 truncate">{mentor.expertise}</span>
                                     </div>
                                   </div>
                                 </div>
-                                <div className="flex items-center space-x-4 flex-shrink-0">
-                                  <div className="bg-blue-100/80 text-blue-700 border border-blue-200/50 hover:bg-blue-200/70 px-3 py-1.5 rounded-full font-medium text-xs whitespace-nowrap overflow-hidden text-ellipsis max-w-32">
+                                <div className="flex items-center gap-2 md:gap-3 flex-shrink-0">
+                                  <div className="bg-blue-50 text-blue-700 border border-blue-100 hover:bg-blue-100 px-3 py-1 rounded-full font-medium text-xs whitespace-nowrap overflow-hidden text-ellipsis max-w-28 transition">
                                     {mentor.expertise}
                                   </div>
-                                  <div className="bg-blue-100/80 text-blue-700 border border-blue-200 rounded-lg w-8 h-8 flex items-center justify-center shadow-sm flex-shrink-0">
+                                  <div className="bg-blue-50 text-blue-700 border border-blue-100 rounded-lg w-7 h-7 flex items-center justify-center shadow flex-shrink-0 group-hover:bg-blue-100 transition">
                                     {expandedMentor === mentor.id ? (
-                                      <ChevronUp className="h-5 w-5" />
+                                      <ChevronUp className="h-4 w-4" />
                                     ) : (
-                                      <ChevronDown className="h-5 w-5" />
+                                      <ChevronDown className="h-4 w-4" />
                                     )}
                                   </div>
                                 </div>
@@ -772,26 +711,25 @@ Type "DELETE" to confirm:`;
                                   transition={{ duration: 0.3 }}
                                   className="overflow-hidden"
                                 >
-                                  <div className="px-6 pb-6 pt-2 border-t border-gray-200/50 bg-gradient-to-r from-blue-50/30 to-indigo-50/30">
-                                    <div className="bg-white/90 backdrop-blur-sm rounded-xl p-6 space-y-6 shadow-sm">
+                                  <div className="px-8 pb-8 pt-3 border-t border-gray-100 bg-gradient-to-r from-blue-50/40 to-indigo-50/40">
+                                    <div className="bg-white/95 backdrop-blur rounded-2xl p-8 space-y-8 shadow">
                                       <div>
-                                        <h4 className="text-lg font-semibold text-gray-800 mb-3 flex items-center gap-2">
-                                          <div className="bg-blue-100/80 text-blue-700 border border-blue-200 rounded-lg w-7 h-7 flex items-center justify-center text-xs flex-shrink-0">
+                                        <h4 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-3">
+                                          <div className="bg-blue-50 text-blue-600 border border-blue-100 rounded-lg w-8 h-8 flex items-center justify-center text-lg flex-shrink-0">
                                             📝
                                           </div>
                                           About
                                         </h4>
-                                        <p className="text-gray-700 leading-relaxed break-words">{mentor.description}</p>
+                                        <p className="text-gray-700 leading-relaxed break-words text-base">{mentor.description}</p>
                                       </div>
-
-                                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                        <div className="bg-white border border-gray-200/50 shadow-sm rounded-lg p-4 hover:border-blue-300/70 transition-colors">
-                                          <div className="flex items-center gap-3">
-                                            <div className="bg-blue-100/80 text-blue-700 border border-blue-200 rounded-lg w-9 h-9 flex items-center justify-center flex-shrink-0">
-                                              <Mail className="h-4 w-4" />
+                                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                        <div className="bg-white border border-gray-100 shadow rounded-xl p-5 hover:border-blue-200 transition-colors">
+                                          <div className="flex items-center gap-4">
+                                            <div className="bg-blue-50 text-blue-600 border border-blue-100 rounded-lg w-10 h-10 flex items-center justify-center flex-shrink-0">
+                                              <Mail className="h-5 w-5" />
                                             </div>
                                             <div className="min-w-0 flex-1">
-                                              <p className="text-sm font-semibold text-gray-600">Email</p>
+                                              <p className="text-sm font-semibold text-gray-500">Email</p>
                                               <a
                                                 href={`mailto:${mentor.email}`}
                                                 className="text-blue-600 hover:text-blue-700 font-medium transition-colors break-all"
@@ -801,15 +739,14 @@ Type "DELETE" to confirm:`;
                                             </div>
                                           </div>
                                         </div>
-
                                         {mentor.linkedinUrl && (
-                                          <div className="bg-white border border-gray-200/50 shadow-sm rounded-lg p-4 hover:border-blue-300/70 transition-colors">
-                                            <div className="flex items-center gap-3">
-                                              <div className="bg-blue-100/80 text-blue-700 border border-blue-200 rounded-lg w-9 h-9 flex items-center justify-center flex-shrink-0">
-                                                <Linkedin className="h-4 w-4" />
+                                          <div className="bg-white border border-gray-100 shadow rounded-xl p-5 hover:border-blue-200 transition-colors">
+                                            <div className="flex items-center gap-4">
+                                              <div className="bg-blue-50 text-blue-600 border border-blue-100 rounded-lg w-10 h-10 flex items-center justify-center flex-shrink-0">
+                                                <Linkedin className="h-5 w-5" />
                                               </div>
                                               <div className="min-w-0 flex-1">
-                                                <p className="text-sm font-semibold text-gray-600">LinkedIn</p>
+                                                <p className="text-sm font-semibold text-gray-500">LinkedIn</p>
                                                 <a
                                                   href={mentor.linkedinUrl}
                                                   target="_blank"
@@ -824,21 +761,18 @@ Type "DELETE" to confirm:`;
                                           </div>
                                         )}
                                       </div>
-
-                                      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pt-4 border-t border-gray-200/50">
-                                        <div className="flex items-center gap-2 text-sm text-gray-500">
+                                      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-6 pt-6 border-t border-gray-100">
+                                        <div className="flex items-center gap-3 text-sm text-gray-400">
                                           <div className="w-2 h-2 rounded-full bg-blue-400 flex-shrink-0"></div>
                                           <span>Added {format(mentor.createdAt?.toDate() || new Date(), 'MMM d, yyyy')}</span>
                                         </div>
-
-                                        <div className="flex gap-3">
+                                        <div className="flex gap-4">
                                           <Button
                                             variant="ghost"
                                             size="sm"
-                                            className="hover:text-amber-600 text-gray-500 hover:bg-amber-100/60 transition-all duration-200 rounded-full border border-gray-200 hover:border-amber-300"
+                                            className="hover:text-amber-600 text-gray-400 hover:bg-amber-50 transition-all duration-200 rounded-full border border-gray-100 hover:border-amber-200 px-5"
                                             onClick={(e) => {
                                               e.stopPropagation();
-                                          
                                               toast({
                                                 title: "Edit functionality coming soon",
                                                 description: "The ability to edit mentors will be available in the next update.",
@@ -852,7 +786,7 @@ Type "DELETE" to confirm:`;
                                           <Button
                                             variant="ghost"
                                             size="sm"
-                                            className="hover:text-red-600 text-gray-500 hover:bg-red-100/60 transition-all duration-200 rounded-full border border-gray-200 hover:border-red-300"
+                                            className="hover:text-red-600 text-gray-400 hover:bg-red-50 transition-all duration-200 rounded-full border border-gray-100 hover:border-red-200 px-5"
                                             onClick={(e) => {
                                               e.stopPropagation();
                                               handleDeleteMentor(mentor.id, mentor.name);
@@ -876,20 +810,20 @@ Type "DELETE" to confirm:`;
                   ) : (
                     <motion.div
                       variants={item}
-                      className="bg-white/90 backdrop-blur-xl border-2 border-dashed border-gray-300/50 rounded-2xl text-center py-16"
+                      className="bg-white/95 backdrop-blur-xl border-2 border-dashed border-gray-200 rounded-2xl text-center py-20"
                     >
                       <div className="max-w-md mx-auto">
-                        <div className="bg-gradient-to-r from-blue-100 to-indigo-100 text-blue-700 border border-blue-200 rounded-full w-20 h-20 flex items-center justify-center mx-auto mb-6 shadow-md">
-                          <Users className="h-10 w-10" />
+                        <div className="bg-gradient-to-r from-blue-100 to-indigo-100 text-blue-700 border border-blue-200 rounded-full w-24 h-24 flex items-center justify-center mx-auto mb-8 shadow-lg">
+                          <Users className="h-12 w-12" />
                         </div>
-                        <h3 className="text-2xl font-bold text-gray-700 mb-2">No mentors found</h3>
-                        <p className="text-lg text-gray-500 mb-6">
+                        <h3 className="text-3xl font-bold text-gray-400 mb-3">No mentors found</h3>
+                        <p className="text-lg text-gray-400 mb-8">
                           {searchQuery ? 'Try a different search term' : 'Get started by adding a new mentor'}
                         </p>
                         {!searchQuery && (
                           <Button
                             onClick={() => setIsCreateDialogOpen(true)}
-                            className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white transition-all duration-300 shadow-md hover:shadow-lg border-0"
+                            className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white transition-all duration-300 shadow-lg rounded-lg px-7 py-3 font-semibold"
                             suppressHydrationWarning
                           >
                             <PlusCircle className="mr-2 h-5 w-5" />
@@ -902,9 +836,10 @@ Type "DELETE" to confirm:`;
                 </motion.div>
               )}
             </div>
-          </div>
+          </section>
         </div>
       </div>
     </>
   );
 }
+

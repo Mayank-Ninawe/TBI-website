@@ -49,11 +49,7 @@ const safeFormat = (date: Date | string, formatStr: string) => {
 
 // Toast notification component
 const Toast = ({ message, type, onClose }: { message: string; type: 'success' | 'error' | 'info'; onClose: () => void }) => (
-  <div className={`fixed top-4 right-4 z-50 p-4 rounded-lg shadow-lg border ${
-    type === 'success' ? 'bg-green-50 border-green-200 text-green-800' :
-    type === 'error' ? 'bg-red-50 border-red-200 text-red-800' :
-    'bg-blue-50 border-blue-200 text-blue-800'
-  }`}>
+  <div className="fixed top-4 right-4 z-50 p-4 rounded-lg shadow-lg border bg-white border-gray-200 text-gray-800">
     <div className="flex items-center gap-3">
       <span>{message}</span>
       <button 
@@ -1138,22 +1134,17 @@ export default function EvaluationPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
-      <div className="max-w-7xl mx-auto space-y-8">
+    <div className="min-h-screen bg-white p-8">
+      <div className="max-w-7xl mx-auto space-y-10">
         {/* Header Section */}
-        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
+        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-8 border-b border-gray-100 pb-8 mb-8">
           <div className="space-y-2">
-            <h1 className="text-3xl font-bold text-gray-900">
-              Evaluation Rounds
-            </h1>
-            <p className="text-gray-600 text-lg">
-              Manage and monitor your startup evaluation processes
-            </p>
+            <h1 className="text-4xl font-extrabold text-gray-900 tracking-tight leading-tight">Evaluation Rounds</h1>
+            <p className="text-gray-500 text-lg font-medium leading-relaxed">Manage and monitor your startup evaluation processes</p>
           </div>
-          
           <Button
             onClick={() => setIsModalOpen(true)}
-            className="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3 rounded-lg transition-all duration-200 shadow-sm hover:shadow-md"
+            className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 rounded-full shadow-none font-semibold text-lg transition-colors focus-visible:ring-2 focus-visible:ring-blue-400"
           >
             <Plus className="w-5 h-5 mr-2" />
             Create New Round
@@ -1177,85 +1168,57 @@ export default function EvaluationPage() {
         )}
 
         {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          <div className="bg-white border border-gray-200 rounded-lg p-6 shadow-sm hover:shadow-md transition-all duration-200">
-            <div className="flex items-center justify-between mb-4">
-              <div className="p-3 bg-blue-100 rounded-lg">
-                <Target className="w-6 h-6 text-blue-600" />
-              </div>
-              <Badge className="bg-blue-100 text-blue-800 border-blue-200 border">
-                Total
-              </Badge>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+          <div className="bg-white border border-gray-100 rounded-xl p-4 shadow-sm flex flex-col items-start gap-2 min-h-0">
+            <div className="p-2 bg-blue-50 rounded-full mb-1">
+              <Target className="w-5 h-5 text-blue-500" />
             </div>
-            <div className="space-y-1">
-              <p className="text-3xl font-bold text-gray-900">{stats.total}</p>
-              <p className="text-blue-600 text-sm font-medium">Evaluation Rounds</p>
-            </div>
+            <span className="text-[10px] font-semibold text-blue-500 uppercase tracking-wider">Total</span>
+            <span className="text-2xl font-extrabold text-gray-900">{stats.total}</span>
+            <span className="text-gray-400 text-xs">Evaluation Rounds</span>
           </div>
-
-          <div className="bg-white border border-gray-200 rounded-lg p-6 shadow-sm hover:shadow-md transition-all duration-200">
-            <div className="flex items-center justify-between mb-4">
-              <div className="p-3 bg-green-100 rounded-lg">
-                <Activity className="w-6 h-6 text-green-600" />
-              </div>
-              <Badge className="bg-green-100 text-green-800 border-green-200 border">
-                Live
-              </Badge>
+          <div className="bg-white border border-gray-100 rounded-xl p-4 shadow-sm flex flex-col items-start gap-2 min-h-0">
+            <div className="p-2 bg-green-50 rounded-full mb-1">
+              <Activity className="w-5 h-5 text-green-500" />
             </div>
-            <div className="space-y-1">
-              <p className="text-3xl font-bold text-gray-900">{stats.active}</p>
-              <p className="text-green-600 text-sm font-medium">Active Rounds</p>
-            </div>
+            <span className="text-[10px] font-semibold text-green-500 uppercase tracking-wider">Live</span>
+            <span className="text-2xl font-extrabold text-gray-900">{stats.active}</span>
+            <span className="text-gray-400 text-xs">Active Rounds</span>
           </div>
-
-          <div className="bg-white border border-gray-200 rounded-lg p-6 shadow-sm hover:shadow-md transition-all duration-200">
-            <div className="flex items-center justify-between mb-4">
-              <div className="p-3 bg-purple-100 rounded-lg">
-                <CheckCircle className="w-6 h-6 text-purple-600" />
-              </div>
-              <Badge className="bg-purple-100 text-purple-800 border-purple-200 border">
-                Done
-              </Badge>
+          <div className="bg-white border border-gray-100 rounded-xl p-4 shadow-sm flex flex-col items-start gap-2 min-h-0">
+            <div className="p-2 bg-purple-50 rounded-full mb-1">
+              <CheckCircle className="w-5 h-5 text-purple-500" />
             </div>
-            <div className="space-y-1">
-              <p className="text-3xl font-bold text-gray-900">{stats.completed}</p>
-              <p className="text-purple-600 text-sm font-medium">Completed</p>
-            </div>
+            <span className="text-[10px] font-semibold text-purple-500 uppercase tracking-wider">Done</span>
+            <span className="text-2xl font-extrabold text-gray-900">{stats.completed}</span>
+            <span className="text-gray-400 text-xs">Completed</span>
           </div>
-
-          <div className="bg-white border border-gray-200 rounded-lg p-6 shadow-sm hover:shadow-md transition-all duration-200">
-            <div className="flex items-center justify-between mb-4">
-              <div className="p-3 bg-amber-100 rounded-lg">
-                <TrendingUp className="w-6 h-6 text-amber-600" />
-              </div>
-              <Badge className="bg-amber-100 text-amber-800 border-amber-200 border">
-                Avg
-              </Badge>
+          <div className="bg-white border border-gray-100 rounded-xl p-4 shadow-sm flex flex-col items-start gap-2 min-h-0">
+            <div className="p-2 bg-amber-50 rounded-full mb-1">
+              <TrendingUp className="w-5 h-5 text-amber-500" />
             </div>
-            <div className="space-y-1">
-              <p className="text-3xl font-bold text-gray-900">{stats.avgScore.toFixed(1)}</p>
-              <p className="text-amber-600 text-sm font-medium">Average Score</p>
-            </div>
+            <span className="text-[10px] font-semibold text-amber-500 uppercase tracking-wider">Avg</span>
+            <span className="text-2xl font-extrabold text-gray-900">{stats.avgScore.toFixed(1)}</span>
+            <span className="text-gray-400 text-xs">Average Score</span>
           </div>
         </div>
 
         {/* Filters and Search */}
-        <div className="bg-white border border-gray-200 rounded-lg p-6 shadow-sm">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="bg-white border border-gray-100 rounded-2xl p-6 shadow-sm mb-10">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-300 w-5 h-5" />
               <Input
                 placeholder="Search rounds..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10 bg-gray-50 border-gray-300 text-gray-900 placeholder-gray-500 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 rounded-lg"
+                className="pl-10 bg-gray-50 border border-gray-200 text-gray-900 placeholder-gray-400 focus:border-blue-400 focus:ring-2 focus:ring-blue-100 rounded-full h-12 text-base"
               />
             </div>
-
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
-              className="bg-gray-50 border border-gray-300 text-gray-900 rounded-lg px-3 py-2 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 focus:outline-none"
+              className="bg-gray-50 border border-gray-200 text-gray-900 rounded-full px-4 h-12 focus:border-blue-400 focus:ring-2 focus:ring-blue-100 focus:outline-none text-base"
             >
               <option value="all">All Statuses</option>
               <option value="Draft">Draft</option>
@@ -1263,11 +1226,10 @@ export default function EvaluationPage() {
               <option value="Completed">Completed</option>
               <option value="Cancelled">Cancelled</option>
             </select>
-
             <select
               value={phaseFilter}
               onChange={(e) => setPhaseFilter(e.target.value)}
-              className="bg-gray-50 border border-gray-300 text-gray-900 rounded-lg px-3 py-2 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 focus:outline-none"
+              className="bg-gray-50 border border-gray-200 text-gray-900 rounded-full px-4 h-12 focus:border-blue-400 focus:ring-2 focus:ring-blue-100 focus:outline-none text-base"
             >
               <option value="all">All Phases</option>
               <option value="Application">Application</option>
@@ -1281,25 +1243,25 @@ export default function EvaluationPage() {
         </div>
 
         {/* Evaluation Rounds Table */}
-        <div className="bg-white border border-gray-200 rounded-lg shadow-sm">
+        <div className="bg-white border border-gray-100 rounded-2xl shadow-sm">
           <div className="overflow-x-auto">
-            <table className="w-full">
+            <table className="w-full text-base">
               <thead>
-                <tr className="bg-gray-50 border-b border-gray-200">
-                  <th className="text-left py-4 px-6 text-gray-700 font-semibold">Round Details</th>
-                  <th className="text-left py-4 px-6 text-gray-700 font-semibold">Phase & Status</th>
-                  <th className="text-left py-4 px-6 text-gray-700 font-semibold">Schedule</th>
-                  <th className="text-left py-4 px-6 text-gray-700 font-semibold min-w-[140px]">Metrics</th>
-                  <th className="text-left py-4 px-6 text-gray-700 font-semibold">Performance</th>
-                  <th className="text-center py-4 px-6 text-gray-700 font-semibold">Actions</th>
+                <tr className="bg-white border-b border-gray-100">
+                  <th className="text-left py-4 px-6 text-gray-400 font-semibold uppercase tracking-wider text-sm">Round Details</th>
+                  <th className="text-left py-4 px-6 text-gray-400 font-semibold uppercase tracking-wider text-sm">Phase & Status</th>
+                  <th className="text-left py-4 px-6 text-gray-400 font-semibold uppercase tracking-wider text-sm">Schedule</th>
+                  <th className="text-left py-4 px-6 text-gray-400 font-semibold uppercase tracking-wider text-sm min-w-[140px]">Metrics</th>
+                  <th className="text-left py-4 px-6 text-gray-400 font-semibold uppercase tracking-wider text-sm">Performance</th>
+                  <th className="text-center py-4 px-6 text-gray-400 font-semibold uppercase tracking-wider text-sm">Actions</th>
                 </tr>
               </thead>
               <tbody>
                 {filteredRounds.length === 0 ? (
                   <tr>
-                    <td colSpan={6} className="text-center py-12 text-gray-600">
-                      <Target className="w-12 h-12 mx-auto mb-4 opacity-50" />
-                      <p className="text-lg font-semibold mb-2">No evaluation rounds found</p>
+                    <td colSpan={6} className="text-center py-16 text-gray-400">
+                      <Target className="w-12 h-12 mx-auto mb-4 opacity-40" />
+                      <p className="text-lg font-semibold mb-1">No evaluation rounds found</p>
                       <p className="text-sm">Create your first evaluation round to get started</p>
                     </td>
                   </tr>
@@ -1307,49 +1269,49 @@ export default function EvaluationPage() {
                   filteredRounds.map((round) => (
                     <tr 
                       key={round.id} 
-                      className="border-b border-gray-100 hover:bg-gray-50 transition-all duration-200"
+                      className="border-b border-gray-50 hover:bg-blue-50/40 transition-all duration-150 group"
                     >
                       {/* Round Details */}
-                      <td className="py-6 px-6">
+                      <td className="py-5 px-6 align-top max-w-xs">
                         <div className="space-y-2">
-                          <h3 className="text-gray-900 font-semibold text-lg leading-tight">
+                          <h3 className="text-gray-900 font-semibold text-lg truncate" title={round.roundName}>
                             {round.roundName}
                           </h3>
-                          <p className="text-gray-600 text-sm line-clamp-2">
+                          <p className="text-gray-500 text-sm truncate" title={round.description || 'No description provided'}>
                             {round.description || 'No description provided'}
                           </p>
-                          <div className="flex items-center gap-2 text-xs text-gray-500">
-                            <Calendar className="w-3 h-3" />
+                          <div className="flex items-center gap-2 text-xs text-gray-300">
+                            <Calendar className="w-4 h-4" />
                             Created {format(round.createdAt, 'MMM d, yyyy')}
                           </div>
                         </div>
                       </td>
 
                       {/* Phase & Status */}
-                      <td className="py-6 px-6">
-                        <div className="space-y-3">
+                      <td className="py-5 px-6 align-top">
+                        <div className="space-y-2">
                           <Badge 
                             className={`${
-                              round.phase === 'Application' ? 'bg-blue-100 text-blue-800 border-blue-200 border' :
-                              round.phase === 'Screening' ? 'bg-amber-100 text-amber-800 border-amber-200 border' :
-                              round.phase === 'Pitch' ? 'bg-purple-100 text-purple-800 border-purple-200 border' :
-                              round.phase === 'Demo' ? 'bg-indigo-100 text-indigo-800 border-indigo-200 border' :
-                              round.phase === 'Due Diligence' ? 'bg-orange-100 text-orange-800 border-orange-200 border' :
-                              'bg-green-100 text-green-800 border-green-200 border'
-                            } px-3 py-1 rounded-lg text-xs font-medium`}
+                              round.phase === 'Application' ? 'bg-blue-50 text-blue-600 border-blue-100 border' :
+                              round.phase === 'Screening' ? 'bg-amber-50 text-amber-600 border-amber-100 border' :
+                              round.phase === 'Pitch' ? 'bg-purple-50 text-purple-600 border-purple-100 border' :
+                              round.phase === 'Demo' ? 'bg-indigo-50 text-indigo-600 border-indigo-100 border' :
+                              round.phase === 'Due Diligence' ? 'bg-orange-50 text-orange-600 border-orange-100 border' :
+                              'bg-green-50 text-green-600 border-green-100 border'
+                            } px-3 py-1 rounded-full text-xs font-medium`}
                           >
                             {round.phase}
                           </Badge>
                           <div className="flex items-center gap-2">
-                            {round.status === 'Active' && <Activity className="w-4 h-4 text-green-600" />}
-                            {round.status === 'Completed' && <CheckCircle className="w-4 h-4 text-blue-600" />}
-                            {round.status === 'Draft' && <Clock className="w-4 h-4 text-amber-600" />}
-                            {round.status === 'Cancelled' && <AlertCircle className="w-4 h-4 text-red-600" />}
+                            {round.status === 'Active' && <Activity className="w-5 h-5 text-green-500" />}
+                            {round.status === 'Completed' && <CheckCircle className="w-5 h-5 text-blue-500" />}
+                            {round.status === 'Draft' && <Clock className="w-5 h-5 text-amber-500" />}
+                            {round.status === 'Cancelled' && <AlertCircle className="w-5 h-5 text-red-500" />}
                             <span className={`text-sm font-medium ${
-                              round.status === 'Active' ? 'text-green-700' :
-                              round.status === 'Completed' ? 'text-blue-700' :
-                              round.status === 'Draft' ? 'text-amber-700' :
-                              'text-red-700'
+                              round.status === 'Active' ? 'text-green-600' :
+                              round.status === 'Completed' ? 'text-blue-600' :
+                              round.status === 'Draft' ? 'text-amber-600' :
+                              'text-red-600'
                             }`}>
                               {round.status}
                             </span>
@@ -1358,18 +1320,18 @@ export default function EvaluationPage() {
                       </td>
 
                       {/* Schedule */}
-                      <td className="py-6 px-6">
-                        <div className="space-y-2 text-sm">
-                          <div className="flex items-center gap-2 text-gray-700">
-                            <Calendar className="w-4 h-4 text-blue-600" />
+                      <td className="py-5 px-6 align-top text-sm text-gray-700">
+                        <div className="space-y-2">
+                          <div className="flex items-center gap-2">
+                            <Calendar className="w-5 h-5 text-blue-400" />
                             <span>{format(round.scheduledAt, 'MMM d, yyyy')}</span>
                           </div>
-                          <div className="flex items-center gap-2 text-gray-700">
-                            <Clock className="w-4 h-4 text-orange-600" />
+                          <div className="flex items-center gap-2">
+                            <Clock className="w-5 h-5 text-amber-400" />
                             <span>{format(round.scheduledAt, 'HH:mm')}</span>
                           </div>
                           {round.evaluationDeadline && (
-                            <div className="text-xs text-gray-500">
+                            <div className="text-xs text-gray-400">
                               Deadline: {format(round.evaluationDeadline, 'MMM d')}
                             </div>
                           )}
@@ -1377,68 +1339,66 @@ export default function EvaluationPage() {
                       </td>
 
                       {/* Metrics */}
-                      <td className="py-6 px-6 min-w-[140px]">
+                      <td className="py-5 px-6 align-top min-w-[140px]">
                         <div className="space-y-2">
-                          <div className="bg-blue-50 border border-blue-200 rounded-lg p-2 text-center">
-                            <div className="text-blue-600 font-semibold text-sm">{round.submissionCount || 0}</div>
-                            <div className="text-blue-500 text-xs">Submissions</div>
+                          <div className="bg-blue-50 border border-blue-100 rounded-lg p-2 text-center">
+                            <div className="text-blue-600 font-semibold text-base">{round.submissionCount || 0}</div>
+                            <div className="text-blue-400 text-xs">Submissions</div>
                           </div>
-                          <div className="bg-purple-50 border border-purple-200 rounded-lg p-2 text-center">
-                            <div className="text-purple-600 font-semibold text-sm">{round.evaluatorCount || 0}</div>
-                            <div className="text-purple-500 text-xs">Evaluators</div>
+                          <div className="bg-purple-50 border border-purple-100 rounded-lg p-2 text-center">
+                            <div className="text-purple-600 font-semibold text-base">{round.evaluatorCount || 0}</div>
+                            <div className="text-purple-400 text-xs">Evaluators</div>
                           </div>
-                          <div className="text-xs text-gray-500 text-center">
+                          <div className="text-xs text-gray-300 text-center">
                             {round.criteriaCount || 0} criteria • {round.evaluationPeriod}d
                           </div>
                         </div>
                       </td>
 
                       {/* Performance */}
-                      <td className="py-6 px-6">
+                      <td className="py-5 px-6 align-top">
                         <div className="space-y-2">
                           {round.averageScore && round.averageScore > 0 ? (
                             <>
                               <div className="flex items-center gap-2">
-                                <Star className="w-4 h-4 text-amber-500" />
-                                <span className="text-gray-900 font-semibold">
+                                <Star className="w-5 h-5 text-amber-400" />
+                                <span className="text-gray-900 font-semibold text-base">
                                   {round.averageScore.toFixed(1)}
                                 </span>
-                                <span className="text-gray-500 text-sm">/ {round.maxScore}</span>
+                                <span className="text-gray-400 text-base">/ {round.maxScore}</span>
                               </div>
-                              <div className="w-full bg-gray-200 rounded-full h-2">
+                              <div className="w-full bg-gray-100 rounded-full h-2">
                                 <div 
-                                  className="bg-indigo-600 h-2 rounded-full transition-all duration-500"
+                                  className="bg-blue-400 h-2 rounded-full transition-all duration-500"
                                   style={{ width: `${(round.averageScore / round.maxScore) * 100}%` }}
                                 ></div>
                               </div>
                             </>
                           ) : (
-                            <div className="text-gray-500 text-sm">No scores yet</div>
+                            <div className="text-gray-300 text-base">No scores yet</div>
                           )}
                         </div>
                       </td>
 
                       {/* Actions */}
-                      <td className="py-6 px-6">
+                      <td className="py-5 px-6 align-top">
                         <div className="flex items-center justify-center gap-2">
                           <Button
                             size="sm"
                             onClick={() => handleViewRound(round)}
                             title="View Details"
-                            className="bg-blue-600 hover:bg-blue-700 text-white rounded-lg px-3 py-2 transition-all duration-200 shadow-sm"
+                            className="bg-blue-500 hover:bg-blue-600 text-white rounded-full px-3 py-2 transition-all duration-150 shadow-none"
                           >
-                            <Eye className="w-4 h-4" />
+                            <Eye className="w-5 h-5" />
                           </Button>
-                          
                           <Button
                             size="sm"
                             onClick={() => handleEditRound(round)}
                             title="Edit Round"
-                            className="bg-green-600 hover:bg-green-700 text-white rounded-lg px-3 py-2 transition-all duration-200 shadow-sm"
+                            className="bg-green-500 hover:bg-green-600 text-white rounded-full px-3 py-2 transition-all duration-150 shadow-none"
                           >
-                            <Edit className="w-4 h-4" />
+                            <Edit className="w-5 h-5" />
                           </Button>
-
                           <div className="relative more-actions-dropdown">
                             <Button
                               size="sm"
@@ -1446,43 +1406,42 @@ export default function EvaluationPage() {
                               title="More Actions"
                               className={`${
                                 showMoreActions === round.id
-                                  ? 'bg-gray-400 shadow-sm'
-                                  : 'bg-gray-600 hover:bg-gray-700 shadow-sm'
-                              } text-white rounded-lg px-3 py-2 transition-all duration-200`}
+                                  ? 'bg-gray-200 shadow-none'
+                                  : 'bg-gray-300 hover:bg-gray-400 shadow-none'
+                              } text-gray-700 rounded-full px-3 py-2 transition-all duration-150`}
                             >
-                              <MoreHorizontal className="w-4 h-4" />
+                              <MoreHorizontal className="w-5 h-5" />
                             </Button>
-
                             {showMoreActions === round.id && (
-                              <div className="absolute right-0 top-full mt-2 w-52 bg-white border border-gray-200 rounded-lg shadow-lg z-10 overflow-hidden">
+                              <div className="absolute right-0 top-full mt-2 w-52 bg-white border border-gray-100 rounded-xl shadow-lg z-10 overflow-hidden">
                                 <div className="py-2">
                                   <button
                                     onClick={() => handleDuplicateRound(round)}
-                                    className="w-full text-left px-4 py-3 text-gray-700 hover:bg-blue-50 hover:text-blue-700 transition-all duration-200 flex items-center gap-3"
+                                    className="w-full text-left px-4 py-2 text-gray-700 hover:bg-blue-50 hover:text-blue-700 transition-all duration-150 flex items-center gap-2 text-sm"
                                   >
-                                    <Copy className="w-4 h-4" />
+                                    <Copy className="w-5 h-5" />
                                     <span>Duplicate</span>
                                   </button>
                                   <button
                                     onClick={() => handleArchiveRound(round)}
-                                    className="w-full text-left px-4 py-3 text-gray-700 hover:bg-amber-50 hover:text-amber-700 transition-all duration-200 flex items-center gap-3"
+                                    className="w-full text-left px-4 py-2 text-gray-700 hover:bg-amber-50 hover:text-amber-700 transition-all duration-150 flex items-center gap-2 text-sm"
                                   >
-                                    <Archive className="w-4 h-4" />
+                                    <Archive className="w-5 h-5" />
                                     <span>Archive</span>
                                   </button>
                                   <button
                                     onClick={() => handleExportRound(round)}
-                                    className="w-full text-left px-4 py-3 text-gray-700 hover:bg-green-50 hover:text-green-700 transition-all duration-200 flex items-center gap-3"
+                                    className="w-full text-left px-4 py-2 text-gray-700 hover:bg-green-50 hover:text-green-700 transition-all duration-150 flex items-center gap-2 text-sm"
                                   >
-                                    <Download className="w-4 h-4" />
+                                    <Download className="w-5 h-5" />
                                     <span>Export</span>
                                   </button>
-                                  <div className="border-t border-gray-200 my-2"></div>
+                                  <div className="border-t border-gray-100 my-2"></div>
                                   <button
                                     onClick={() => handleDeleteRound(round.id)}
-                                    className="w-full text-left px-4 py-3 text-red-600 hover:bg-red-50 hover:text-red-700 transition-all duration-200 flex items-center gap-3"
+                                    className="w-full text-left px-4 py-2 text-red-600 hover:bg-red-50 hover:text-red-700 transition-all duration-150 flex items-center gap-2 text-sm"
                                   >
-                                    <Trash2 className="w-4 h-4" />
+                                    <Trash2 className="w-5 h-5" />
                                     <span>Delete</span>
                                   </button>
                                 </div>
