@@ -7,7 +7,6 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { StatusCard } from "@/components/ui/status-card";
 import { Textarea } from "@/components/ui/textarea";
 import { 
   Dialog,
@@ -200,59 +199,64 @@ export default function AdminMentorRequestsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 w-full flex flex-col items-center py-10 px-2">
-      <div className="w-full max-w-6xl mx-auto space-y-8">
-        <div className="bg-white rounded-2xl shadow-md border border-gray-200 overflow-hidden">
-          <div className="px-8 pt-8 pb-4 flex flex-col md:flex-row md:items-center md:justify-between gap-6">
+    <div className="min-h-screen bg-[#f8fafc] w-full flex flex-col items-center py-14 px-2">
+      <div className="w-full max-w-5xl mx-auto space-y-10">
+        {/* Header Section */}
+        <section className="bg-white rounded-3xl shadow-lg border border-gray-100 overflow-hidden">
+          <div className="px-10 pt-10 pb-6 flex flex-col md:flex-row md:items-center md:justify-between gap-8">
             <div>
-              <h1 className="text-2xl md:text-3xl font-bold text-gray-900 mb-1">Mentor Requests</h1>
-              <p className="text-sm text-gray-500">Review and process mentor selection requests from students</p>
+              <h1 className="text-3xl md:text-4xl font-extrabold text-gray-900 tracking-tight mb-2">Mentor Requests</h1>
+              <p className="text-base text-gray-500 font-medium">Review and process mentor selection requests from students</p>
             </div>
             <Button 
               onClick={fetchRequests}
               variant="outline"
-              className="bg-white border border-blue-200 text-blue-700 hover:bg-blue-50 hover:border-blue-300 focus:ring-2 focus:ring-blue-200 rounded-lg shadow-sm px-5 py-2 font-medium transition"
+              className="bg-white border border-blue-200 text-blue-700 hover:bg-blue-50 hover:border-blue-300 focus:ring-2 focus:ring-blue-200 rounded-xl shadow transition px-6 py-2.5 font-semibold text-base"
             >
-              <RefreshCw className="mr-2 h-4 w-4" />
+              <RefreshCw className="mr-2 h-5 w-5" />
               Refresh
             </Button>
           </div>
-        </div>
-        {/* Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-          <div className="bg-white rounded-xl shadow border border-gray-100 p-6 flex flex-col items-center">
-            <div className="bg-yellow-100 text-yellow-700 rounded-full w-10 h-10 flex items-center justify-center mb-2">
-              <Clock className="h-5 w-5" />
+        </section>
+        {/* Stats Section */}
+        <section className="grid grid-cols-1 md:grid-cols-4 gap-7">
+          {/* Stat Card Example: Pending */}
+          <div className="bg-white rounded-2xl shadow border border-gray-100 p-7 flex flex-col items-center transition hover:shadow-md">
+            <div className="bg-yellow-50 text-yellow-700 rounded-full w-12 h-12 flex items-center justify-center mb-3 shadow-sm">
+              <Clock className="h-6 w-6" />
             </div>
-            <div className="text-xs font-semibold text-gray-500 mb-1">PENDING</div>
-            <div className="text-2xl font-bold text-gray-900">{pendingRequests.length}</div>
+            <div className="text-xs font-semibold text-gray-500 mb-1 tracking-wide">PENDING</div>
+            <div className="text-3xl font-extrabold text-gray-900">{pendingRequests.length}</div>
             <div className="text-xs text-gray-400">Awaiting review</div>
           </div>
-          <div className="bg-white rounded-xl shadow border border-gray-100 p-6 flex flex-col items-center">
-            <div className="bg-green-100 text-green-700 rounded-full w-10 h-10 flex items-center justify-center mb-2">
-              <CheckCircle className="h-5 w-5" />
+          {/* Stat Card Example: Approved */}
+          <div className="bg-white rounded-2xl shadow border border-gray-100 p-7 flex flex-col items-center transition hover:shadow-md">
+            <div className="bg-green-50 text-green-700 rounded-full w-12 h-12 flex items-center justify-center mb-3 shadow-sm">
+              <CheckCircle className="h-6 w-6" />
             </div>
-            <div className="text-xs font-semibold text-gray-500 mb-1">APPROVED</div>
-            <div className="text-2xl font-bold text-gray-900">{requests.filter(r => r.status === 'admin_approved' || r.status === 'mentor_approved').length}</div>
+            <div className="text-xs font-semibold text-gray-500 mb-1 tracking-wide">APPROVED</div>
+            <div className="text-3xl font-extrabold text-gray-900">{requests.filter(r => r.status === 'admin_approved' || r.status === 'mentor_approved').length}</div>
             <div className="text-xs text-gray-400">Applications</div>
           </div>
-          <div className="bg-white rounded-xl shadow border border-gray-100 p-6 flex flex-col items-center">
-            <div className="bg-red-100 text-red-700 rounded-full w-10 h-10 flex items-center justify-center mb-2">
-              <XCircle className="h-5 w-5" />
+          {/* Stat Card Example: Rejected */}
+          <div className="bg-white rounded-2xl shadow border border-gray-100 p-7 flex flex-col items-center transition hover:shadow-md">
+            <div className="bg-red-50 text-red-700 rounded-full w-12 h-12 flex items-center justify-center mb-3 shadow-sm">
+              <XCircle className="h-6 w-6" />
             </div>
-            <div className="text-xs font-semibold text-gray-500 mb-1">REJECTED</div>
-            <div className="text-2xl font-bold text-gray-900">{requests.filter(r => r.status === 'admin_rejected' || r.status === 'mentor_rejected').length}</div>
+            <div className="text-xs font-semibold text-gray-500 mb-1 tracking-wide">REJECTED</div>
+            <div className="text-3xl font-extrabold text-gray-900">{requests.filter(r => r.status === 'admin_rejected' || r.status === 'mentor_rejected').length}</div>
             <div className="text-xs text-gray-400">Denied</div>
           </div>
-          <div className="bg-white rounded-xl shadow border border-gray-100 p-6 flex flex-col items-center">
-            <div className="bg-blue-100 text-blue-700 rounded-full w-10 h-10 flex items-center justify-center mb-2">
-              <Users className="h-5 w-5" />
+          {/* Stat Card Example: Total */}
+          <div className="bg-white rounded-2xl shadow border border-gray-100 p-7 flex flex-col items-center transition hover:shadow-md">
+            <div className="bg-blue-50 text-blue-700 rounded-full w-12 h-12 flex items-center justify-center mb-3 shadow-sm">
+              <Users className="h-6 w-6" />
             </div>
-            <div className="text-xs font-semibold text-gray-500 mb-1">TOTAL</div>
-            <div className="text-2xl font-bold text-gray-900">{requests.length}</div>
+            <div className="text-xs font-semibold text-gray-500 mb-1 tracking-wide">TOTAL</div>
+            <div className="text-3xl font-extrabold text-gray-900">{requests.length}</div>
             <div className="text-xs text-gray-400">All requests</div>
           </div>
-        </div>
+        </section>
 
         {/* Pending Requests */}
         {pendingRequests.length > 0 && (

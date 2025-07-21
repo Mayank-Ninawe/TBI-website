@@ -1,6 +1,6 @@
 "use client";
 import React, { useState, useEffect, useMemo } from "react";
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, LabelList, Cell, RadialBarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, RadialBar, PieChart, Pie } from "recharts";
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, LabelList, Cell, RadialBarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, RadialBar, PieChart, Pie, LineChart, Line } from "recharts";
 import { motion } from "framer-motion";
 import * as XLSX from 'xlsx';
 import { TrendingUp, Search, ExternalLink, Download, Filter, ChevronDown, Upload, FileText, BarChart3, Plus } from "lucide-react";
@@ -16,6 +16,30 @@ import { Button } from "@/components/ui/button";
 import { useSearchFilter } from "@/hooks/useSearchFilter";
 import { useYearFilter } from "@/hooks/useYearFilter";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { db } from '@/lib/firebase';
+import { collection, getDocs, addDoc, setDoc, doc } from 'firebase/firestore';
+import { format } from 'date-fns';
+import { getAuth, signInWithEmailAndPassword } from "firebase/auth";
+
+const auth = getAuth();
+
+function useFirebaseAuth() {
+  const [user, setUser] = useState<import("firebase/auth").User | null>(null);
+
+  useEffect(() => {
+    // Listen for auth state changes
+    const unsubscribe = auth.onAuthStateChanged((firebaseUser) => {
+      setUser(firebaseUser);
+    });
+
+    // Optionally, sign in automatically for testing
+    // Removed automatic sign-in to avoid auth/invalid-credential error
+
+    return () => unsubscribe();
+  }, []);
+
+  return user;
+}
 
 // Accent and theme colors
 const BG_DARK = "#121212";
@@ -281,59 +305,110 @@ function findSummarySheetName(workbook: XLSX.WorkBook): string | null {
   return null;
 }
 
+// Helper to group submissions by month
+function getMonthlyApplicationCounts(submissions: any[]) {
+  const counts: Record<string, number> = {};
+  submissions.forEach(sub => {
+    let date: Date;
+    if (sub.submittedAt?.toDate) {
+      date = sub.submittedAt.toDate();
+    } else if (typeof sub.submittedAt === 'string' || typeof sub.submittedAt === 'number') {
+      date = new Date(sub.submittedAt);
+    } else {
+      return;
+    }
+    if (isNaN(date.getTime())) return;
+    const month = format(date, 'yyyy-MM');
+    counts[month] = (counts[month] || 0) + 1;
+  });
+  // Sort by month ascending
+  return Object.entries(counts)
+    .sort(([a], [b]) => a.localeCompare(b))
+    .map(([month, count]) => ({ month, count }));
+}
+
+// Upload parsed Excel data to Firestore
+async function uploadExcelDataToFirestore(parsedData: any[]) {
+  await addDoc(collection(db, 'analysisUploads'), {
+    data: parsedData,
+    uploadedAt: new Date(), // Use new Date() instead of serverTimestamp()
+  });
+}
+
+// Helper: Fetch all campus and off-campus submissions and merge them
+async function fetchAndMergeSubmissionsToAnalysis() {
+  // Fetch campus submissions
+  const campusSnapshot = await getDocs(collection(db, 'contactSubmissions'));
+  const campusData = campusSnapshot.docs.map(doc => ({
+    ...doc.data(),
+    id: doc.id,
+    source: 'campus',
+  }));
+
+  // Fetch off-campus submissions
+  const offCampusSnapshot = await getDocs(collection(db, 'offCampusApplications'));
+  const offCampusData = offCampusSnapshot.docs.map(doc => ({
+    ...doc.data(),
+    id: doc.id,
+    source: 'off-campus',
+  }));
+
+  // Merge both
+  const allSubmissions = [...campusData, ...offCampusData];
+
+  // Upload/merge to 'analysis' collection (idempotent by submission id)
+  const analysisCol = collection(db, 'analysis');
+  for (const submission of allSubmissions) {
+    await setDoc(doc(analysisCol, submission.id), submission, { merge: true });
+  }
+}
+
+// Helper: Fetch all analysis data
+async function fetchAllAnalysisDataFromCollection() {
+  const snapshot = await getDocs(collection(db, 'analysis'));
+  return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+}
+
+// Helper for status badge colors
+function getStatusBadgeColors(status: string) {
+  switch ((status || '').toLowerCase()) {
+    case 'revenue generation':
+    case 'approved':
+    case 'active':
+      return 'bg-green-100 text-green-800';
+    case 'discontinued':
+    case 'rejected':
+    case 'exit':
+      return 'bg-red-100 text-red-800';
+    case 'pending':
+    case 'in progress':
+      return 'bg-yellow-100 text-yellow-800';
+    case 'review':
+      return 'bg-blue-100 text-blue-800';
+    default:
+      return 'bg-gray-100 text-gray-800';
+  }
+}
+
+// Helper for legal status badge colors
+function getLegalStatusBadgeColors(legalStatus: string) {
+  switch ((legalStatus || '').toLowerCase()) {
+    case 'msme ssi':
+      return 'bg-blue-100 text-blue-800';
+    case 'llp':
+      return 'bg-purple-100 text-purple-800';
+    case 'pvt. ltd.':
+    case 'private limited':
+      return 'bg-indigo-100 text-indigo-800';
+    default:
+      return 'bg-gray-100 text-gray-800';
+  }
+}
+
 const AnalysisPage = () => {
-  // Status badge color logic for production-ready appearance
-  const getStatusBadgeColors = (status: string) => {
-    const normalizedStatus = status.toLowerCase().trim();
-    
-    if (normalizedStatus.includes('active') || normalizedStatus.includes('running') || normalizedStatus.includes('operational')) {
-      return 'bg-emerald-50 text-emerald-700 border border-emerald-200';
-    }
-    if (normalizedStatus.includes('pending') || normalizedStatus.includes('review') || normalizedStatus.includes('processing')) {
-      return 'bg-amber-50 text-amber-700 border border-amber-200';
-    }
-    if (normalizedStatus.includes('completed') || normalizedStatus.includes('graduated') || normalizedStatus.includes('success')) {
-      return 'bg-green-50 text-green-700 border border-green-200';
-    }
-    if (normalizedStatus.includes('inactive') || normalizedStatus.includes('suspended') || normalizedStatus.includes('terminated')) {
-      return 'bg-red-50 text-red-700 border border-red-200';
-    }
-    if (normalizedStatus.includes('draft') || normalizedStatus.includes('preparation') || normalizedStatus.includes('initial')) {
-      return 'bg-slate-50 text-slate-700 border border-slate-200';
-    }
-    if (normalizedStatus.includes('incubation') || normalizedStatus.includes('development') || normalizedStatus.includes('progress')) {
-      return 'bg-blue-50 text-blue-700 border border-blue-200';
-    }
-    // Default for unknown statuses
-    return 'bg-gray-50 text-gray-700 border border-gray-200';
-  };
-
-  // Legal status badge color logic for production-ready appearance
-  const getLegalStatusBadgeColors = (legalStatus: string) => {
-    const normalizedStatus = legalStatus.toLowerCase().trim();
-    
-    if (normalizedStatus.includes('registered') || normalizedStatus.includes('incorporated') || normalizedStatus.includes('approved')) {
-      return 'bg-green-50 text-green-700 border border-green-200';
-    }
-    if (normalizedStatus.includes('pending') || normalizedStatus.includes('application') || normalizedStatus.includes('processing')) {
-      return 'bg-amber-50 text-amber-700 border border-amber-200';
-    }
-    if (normalizedStatus.includes('private') || normalizedStatus.includes('ltd') || normalizedStatus.includes('limited') || normalizedStatus.includes('company')) {
-      return 'bg-blue-50 text-blue-700 border border-blue-200';
-    }
-    if (normalizedStatus.includes('partnership') || normalizedStatus.includes('llp') || normalizedStatus.includes('firm')) {
-      return 'bg-purple-50 text-purple-700 border border-purple-200';
-    }
-    if (normalizedStatus.includes('sole') || normalizedStatus.includes('proprietorship') || normalizedStatus.includes('individual')) {
-      return 'bg-teal-50 text-teal-700 border border-teal-200';
-    }
-    if (normalizedStatus.includes('rejected') || normalizedStatus.includes('cancelled') || normalizedStatus.includes('withdrawn')) {
-      return 'bg-red-50 text-red-700 border border-red-200';
-    }
-    // Default for unknown legal statuses
-    return 'bg-slate-50 text-slate-700 border border-slate-200';
-  };
-
+  // All hooks at the top, before any return or conditional
+  const [mounted, setMounted] = useState(false);
+  const user = useFirebaseAuth(); // Use the auth hook
   const [excelData, setExcelData] = useState<StartupData[]>([]);
   const [chartData, setChartData] = useState<ChartData[]>([]);
   const [successData, setSuccessData] = useState<SuccessData[]>([]);
@@ -341,32 +416,286 @@ const AnalysisPage = () => {
   const [vcData, setVCData] = useState<VCInvestment[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [selectedStartup, setSelectedStartup] = useState<VCInvestment | null>(null);
-  const [mounted, setMounted] = useState(false);
   const [summaryBlocks, setSummaryBlocks] = useState<Record<string, { label: string, value: number, category: string }[]> | null>(null);
   const [noSummaryFound, setNoSummaryFound] = useState(false);
   const [startupDetails, setStartupDetails] = useState<StartupDetail[]>([]);
-  const [filterOptions, setFilterOptions] = useState<FilterOptions>({
-    status: 'All',
-    legalStatus: 'All',
-    dateSort: 'none'
-  });
+  const [filterOptions, setFilterOptions] = useState<FilterOptions>({ status: 'All', legalStatus: 'All', dateSort: 'none' });
   const [selectedSummaryGraph, setSelectedSummaryGraph] = useState<string>('Startups - Status');
   const [selectedTemplate, setSelectedTemplate] = useState<string>('');
-
-  // Explicitly type the useSearchFilter destructuring
+  const [mergedAnalysisData, setMergedAnalysisData] = useState<any[]>([]);
+  const [loadingMerged, setLoadingMerged] = useState(true);
+  const [analysisSubmissions, setAnalysisSubmissions] = useState<any[]>([]);
+  const [loadingAnalysis, setLoadingAnalysis] = useState(true);
+  const [submissionGraphData, setSubmissionGraphData] = useState<{ month: string; Campus: number; OffCampus: number }[]>([]);
+  const [loadingSubmissionGraph, setLoadingSubmissionGraph] = useState(true);
+  // All custom hooks
   const { searchTerm, setSearchTerm, filteredData: filteredStartupDetails } = useSearchFilter<StartupDetail>(
     startupDetails,
     ['serialNo', 'companyName', 'incubationDate', 'status', 'legalStatus']
   );
-
   const { filterYear, setFilterYear, years: availableYears, filteredData: yearFilteredStartupDetails } = useYearFilter<StartupDetail>(
     filteredStartupDetails
   );
+  // All useMemo hooks
+  const maxY = React.useMemo(() => {
+    let max = 0;
+    submissionGraphData.forEach(d => {
+      if (d.Campus > max) max = d.Campus;
+      if (d.OffCampus > max) max = d.OffCampus;
+    });
+    return Math.max(2, Math.ceil((max + 1) / 2) * 2);
+  }, [submissionGraphData]);
+  const applicationLineData = useMemo(() => getMonthlyApplicationCounts(mergedAnalysisData), [mergedAnalysisData]);
+  const filterAndGraphStartupDetails = useMemo(() => {
+    let filtered = yearFilteredStartupDetails;
+    if (filterOptions.status !== 'All') {
+      filtered = filtered.filter((detail) =>
+        detail.status.toLowerCase() === filterOptions.status.toLowerCase()
+      );
+    }
+    if (filterOptions.legalStatus !== 'All') {
+      filtered = filtered.filter((detail) =>
+        detail.legalStatus.toLowerCase() === filterOptions.legalStatus.toLowerCase()
+      );
+    }
+    if (filterOptions.dateSort !== 'none') {
+      filtered = [...filtered].sort((a, b) => {
+        const dateA = new Date(a.incubationDate);
+        const dateB = new Date(b.incubationDate);
+        return filterOptions.dateSort === 'asc'
+          ? dateA.getTime() - dateB.getTime()
+          : dateB.getTime() - dateA.getTime();
+      });
+    }
+    return filtered;
+  }, [yearFilteredStartupDetails, filterOptions]);
+  const uniqueStatuses = useMemo(() => {
+    const statuses = new Set(startupDetails.map(detail => detail.status));
+    return ['All', ...Array.from(statuses)].filter(Boolean);
+  }, [startupDetails]);
+  const uniqueLegalStatuses = useMemo(() => {
+    const statuses = new Set(startupDetails.map(detail => detail.legalStatus));
+    return ['All', ...Array.from(statuses)].filter(Boolean);
+  }, [startupDetails]);
 
-  // Handle client-side mounting
+  // All useEffect hooks
+  useEffect(() => { setMounted(true); }, []);
   useEffect(() => {
-    setMounted(true);
+    async function fetchSubmissionsForGraph() {
+      setLoadingSubmissionGraph(true);
+      const campusSnapshot = await getDocs(collection(db, 'contactSubmissions'));
+      const campusData = campusSnapshot.docs.map(doc => doc.data());
+      const offCampusSnapshot = await getDocs(collection(db, 'offCampusApplications'));
+      const offCampusData = offCampusSnapshot.docs.map(doc => doc.data());
+      console.log('Campus submissions:', campusData);
+      console.log('Off-campus submissions:', offCampusData);
+      const campusCounts: Record<string, number> = {};
+      campusData.forEach(sub => {
+        let date: Date;
+        if (sub.submittedAt?.toDate) {
+          date = sub.submittedAt.toDate();
+        } else if (typeof sub.submittedAt === 'string' || typeof sub.submittedAt === 'number') {
+          date = new Date(sub.submittedAt);
+        } else {
+          return;
+        }
+        if (isNaN(date.getTime())) return;
+        const month = format(date, 'MMM');
+        campusCounts[month] = (campusCounts[month] || 0) + 1;
+      });
+      const offCampusCounts: Record<string, number> = {};
+      offCampusData.forEach(sub => {
+        let date: Date;
+        if (sub.submittedAt?.toDate) {
+          date = sub.submittedAt.toDate();
+        } else if (typeof sub.submittedAt === 'string' || typeof sub.submittedAt === 'number') {
+          date = new Date(sub.submittedAt);
+        } else {
+          return;
+        }
+        if (isNaN(date.getTime())) return;
+        const month = format(date, 'MMM');
+        offCampusCounts[month] = (offCampusCounts[month] || 0) + 1;
+      });
+      const allMonths = [
+        'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+        'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
+      ];
+      const graphData = allMonths.map(month => ({
+        month,
+        Campus: campusCounts[month] || 0,
+        OffCampus: offCampusCounts[month] || 0
+      }));
+      console.log('Line graph data:', graphData);
+      setSubmissionGraphData(graphData);
+      setLoadingSubmissionGraph(false);
+    }
+    fetchSubmissionsForGraph();
   }, []);
+
+  useEffect(() => {
+    async function syncAndFetch() {
+      setLoadingAnalysis(true);
+      await fetchAndMergeSubmissionsToAnalysis();
+      const data = await fetchAllAnalysisDataFromCollection();
+      setAnalysisSubmissions(data);
+      setLoadingAnalysis(false);
+    }
+    syncAndFetch();
+  }, []);
+
+  // Early returns for loading/auth (after all hooks)
+  if (!mounted) return null;
+
+  const handleDownloadTemplate = (templateType: string) => {
+    let headers: string[] = [];
+    let fileName = "";
+    let sheetName = "";
+
+    switch (templateType) {
+      case "incubationSummary":
+        headers = ["Block Name", "Label", "Value"];
+        fileName = "Incubation_Summary_Template.xlsx";
+        sheetName = "Incubation Summary";
+        break;
+      case "vcInvestment":
+        headers = [
+          "Startup Name",
+          "Amount",
+          "Organization",
+          "Year",
+          "Proof Link",
+          "Description",
+          "Stage",
+          "Sector",
+        ];
+        fileName = "VC_Investment_Template.xlsx";
+        sheetName = "VC Investment Details";
+        break;
+      case "startupDetails":
+        headers = [
+          "Serial No.",
+          "Company Name",
+          "Incubation Month-Year",
+          "Status",
+          "Legal Status",
+        ];
+        fileName = "Startup_Details_Template.xlsx";
+        sheetName = "Startup Details";
+        break;
+      default:
+        // Should not happen if dropdown values are controlled
+        alert("Invalid template type selected.");
+        return;
+    }
+
+    const ws = XLSX.utils.aoa_to_sheet([headers]);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, sheetName);
+    XLSX.writeFile(wb, fileName);
+  };
+
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!user) {
+      alert("You must be logged in to upload a file.");
+      return;
+    }
+
+    setIsLoading(true);
+    const file = e.target.files?.[0];
+    if (!file) {
+      setExcelData([]);
+      setVCData([]);
+      setSummaryBlocks(null);
+      setNoSummaryFound(true);
+      setStartupDetails([]);
+      setIsLoading(false);
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = async (event) => {
+      try {
+        const data = event.target?.result;
+        if (!data) throw new Error("File data is empty.");
+
+        const workbook = XLSX.read(data, { type: 'array' });
+        console.log('File read as ArrayBuffer');
+        console.log('Workbook sheets:', workbook.SheetNames);
+
+        const { startupSheet, vcSheet } = findRelevantSheet(workbook);
+        console.log('Found sheets (names):', { startupSheet, vcSheet });
+
+        if (startupSheet) {
+          console.log('Attempting to parse startup details from sheet:', startupSheet);
+          const sheet = workbook.Sheets[startupSheet];
+          const parsedDetails = parseStartupDetails(sheet);
+          setStartupDetails(parsedDetails);
+          await uploadExcelDataToFirestore(parsedDetails);
+          const all = await fetchAllAnalysisDataFromCollection();
+          setAnalysisSubmissions(all);
+          console.log('Parsed startup details:', parsedDetails);
+          console.log('Startup Details array length after parsing:', parsedDetails.length);
+        } else {
+          console.warn('Startup Details sheet not found.');
+          setStartupDetails([]);
+        }
+
+        const summarySheetName = findSummarySheetName(workbook);
+        console.log('Found summary sheet name:', summarySheetName);
+
+        if (vcSheet) {
+          console.log('Attempting to parse VC data from sheet:', vcSheet);
+          const sheet = workbook.Sheets[vcSheet];
+          const rawVCData = XLSX.utils.sheet_to_json(sheet) as any[];
+          const parsedVCData = normalizeVCData(rawVCData);
+          setVCData(parsedVCData);
+          console.log('Parsed VC data:', parsedVCData);
+        } else {
+          console.warn('VC Investment sheet not found.');
+          setVCData([]);
+        }
+
+        if (summarySheetName) {
+          console.log('Attempting to parse summary blocks...');
+          const sheet = workbook.Sheets[summarySheetName];
+          const parsedSummaryBlocks = robustParseSummaryBlocks(workbook);
+          setSummaryBlocks(parsedSummaryBlocks);
+          console.log('Parsed summary blocks and set state:', parsedSummaryBlocks);
+          setNoSummaryFound(false);
+        } else {
+          console.warn('Summary sheet not found. Displaying dummy summary data.');
+          setSummaryBlocks(dummyData);
+          setNoSummaryFound(true);
+        }
+
+      } catch (error) {
+        console.error("Error processing Excel file:", error);
+        alert("Failed to process Excel file. Please check the console for details.");
+        setExcelData([]);
+        setVCData([]);
+        setSummaryBlocks(dummyData);
+        setNoSummaryFound(true);
+        setStartupDetails([]);
+      } finally {
+        setIsLoading(false);
+        // Set default selected graph after file upload
+        setSelectedSummaryGraph('Startups - Status');
+        console.log('setSelectedSummaryGraph called with:', 'Startups - Status');
+        console.log('Current summaryBlocks state after setting default graph (might lag):', summaryBlocks);
+      }
+    };
+    reader.readAsArrayBuffer(file);
+  };
+
+  const formatAmount = (amount: number) => {
+    return new Intl.NumberFormat('en-IN', {
+      style: 'currency',
+      currency: 'INR',
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0,
+    }).format(amount);
+  };
 
   const findRelevantSheet = (workbook: XLSX.WorkBook): { startupSheet: string | null; vcSheet: string | null } => {
     let startupSheetName: string | null = null;
@@ -780,275 +1109,103 @@ const AnalysisPage = () => {
     return details;
   };
 
-  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    setIsLoading(true);
-    const file = e.target.files?.[0];
-    if (!file) {
-      setExcelData([]);
-      setVCData([]);
-      setSummaryBlocks(null);
-      setNoSummaryFound(true);
-      setStartupDetails([]);
-      setIsLoading(false);
-      return;
-    }
-
-    const reader = new FileReader();
-    reader.onload = async (event) => {
-      try {
-        const data = event.target?.result;
-        if (!data) throw new Error("File data is empty.");
-
-        const workbook = XLSX.read(data, { type: 'array' });
-        console.log('File read as ArrayBuffer');
-        console.log('Workbook sheets:', workbook.SheetNames);
-
-        const { startupSheet, vcSheet } = findRelevantSheet(workbook);
-        console.log('Found sheets (names):', { startupSheet, vcSheet });
-
-        if (startupSheet) {
-          console.log('Attempting to parse startup details from sheet:', startupSheet);
-          const sheet = workbook.Sheets[startupSheet];
-          const parsedDetails = parseStartupDetails(sheet);
-          setStartupDetails(parsedDetails);
-          console.log('Parsed startup details:', parsedDetails);
-          console.log('Startup Details array length after parsing:', parsedDetails.length);
-        } else {
-          console.warn('Startup Details sheet not found.');
-          setStartupDetails([]);
-        }
-
-        const summarySheetName = findSummarySheetName(workbook);
-        console.log('Found summary sheet name:', summarySheetName);
-
-        if (vcSheet) {
-          console.log('Attempting to parse VC data from sheet:', vcSheet);
-          const sheet = workbook.Sheets[vcSheet];
-          const rawVCData = XLSX.utils.sheet_to_json(sheet) as any[];
-          const parsedVCData = normalizeVCData(rawVCData);
-          setVCData(parsedVCData);
-          console.log('Parsed VC data:', parsedVCData);
-        } else {
-          console.warn('VC Investment sheet not found.');
-          setVCData([]);
-        }
-
-        if (summarySheetName) {
-          console.log('Attempting to parse summary blocks...');
-          const sheet = workbook.Sheets[summarySheetName];
-          const parsedSummaryBlocks = robustParseSummaryBlocks(workbook);
-          setSummaryBlocks(parsedSummaryBlocks);
-          console.log('Parsed summary blocks and set state:', parsedSummaryBlocks);
-          setNoSummaryFound(false);
-        } else {
-          console.warn('Summary sheet not found. Displaying dummy summary data.');
-          setSummaryBlocks(dummyData);
-          setNoSummaryFound(true);
-        }
-
-      } catch (error) {
-        console.error("Error processing Excel file:", error);
-        alert("Failed to process Excel file. Please check the console for details.");
-        setExcelData([]);
-        setVCData([]);
-        setSummaryBlocks(dummyData);
-        setNoSummaryFound(true);
-        setStartupDetails([]);
-      } finally {
-        setIsLoading(false);
-        // Set default selected graph after file upload
-        setSelectedSummaryGraph('Startups - Status');
-        console.log('setSelectedSummaryGraph called with:', 'Startups - Status');
-        console.log('Current summaryBlocks state after setting default graph (might lag):', summaryBlocks);
-      }
-    };
-    reader.readAsArrayBuffer(file);
-  };
-
-  const formatAmount = (amount: number) => {
-    return new Intl.NumberFormat('en-IN', {
-      style: 'currency',
-      currency: 'INR',
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0,
-    }).format(amount);
-  };
-
-  const filterAndGraphStartupDetails = useMemo(() => {
-    let filtered = yearFilteredStartupDetails; // Start with data already filtered by search and year
-
-    // Apply status filter
-    if (filterOptions.status !== 'All') {
-      filtered = filtered.filter((detail) =>
-        detail.status.toLowerCase() === filterOptions.status.toLowerCase()
-      );
-    }
-
-    // Apply legal status filter
-    if (filterOptions.legalStatus !== 'All') {
-      filtered = filtered.filter((detail) =>
-        detail.legalStatus.toLowerCase() === filterOptions.legalStatus.toLowerCase()
-      );
-    }
-
-    // Apply date sorting
-    if (filterOptions.dateSort !== 'none') {
-      filtered = [...filtered].sort((a, b) => {
-        const dateA = new Date(a.incubationDate);
-        const dateB = new Date(b.incubationDate);
-        return filterOptions.dateSort === 'asc' 
-          ? dateA.getTime() - dateB.getTime()
-          : dateB.getTime() - dateA.getTime();
-      });
-    }
-
-    return filtered;
-  }, [yearFilteredStartupDetails, filterOptions]); // Depend on yearFilteredStartupDetails and filterOptions
-
-  // Get unique status and legal status values for filter options
-  const uniqueStatuses = useMemo(() => {
-    const statuses = new Set(startupDetails.map(detail => detail.status));
-    return ['All', ...Array.from(statuses)].filter(Boolean);
-  }, [startupDetails]);
-
-  const uniqueLegalStatuses = useMemo(() => {
-    const statuses = new Set(startupDetails.map(detail => detail.legalStatus));
-    return ['All', ...Array.from(statuses)].filter(Boolean);
-  }, [startupDetails]);
-
-  const handleDownloadTemplate = (templateType: string) => {
-    let headers: string[] = [];
-    let fileName = "";
-    let sheetName = "";
-
-    switch (templateType) {
-      case "incubationSummary":
-        headers = ["Block Name", "Label", "Value"];
-        fileName = "Incubation_Summary_Template.xlsx";
-        sheetName = "Incubation Summary";
-        break;
-      case "vcInvestment":
-        headers = [
-          "Startup Name",
-          "Amount",
-          "Organization",
-          "Year",
-          "Proof Link",
-          "Description",
-          "Stage",
-          "Sector",
-        ];
-        fileName = "VC_Investment_Template.xlsx";
-        sheetName = "VC Investment Details";
-        break;
-      case "startupDetails":
-        headers = [
-          "Serial No.",
-          "Company Name",
-          "Incubation Month-Year",
-          "Status",
-          "Legal Status",
-        ];
-        fileName = "Startup_Details_Template.xlsx";
-        sheetName = "Startup Details";
-        break;
-      default:
-        // Should not happen if dropdown values are controlled
-        alert("Invalid template type selected.");
-        return;
-    }
-
-    const ws = XLSX.utils.aoa_to_sheet([headers]);
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, sheetName);
-    XLSX.writeFile(wb, fileName);
-  };
-
-  if (!mounted) {
-    return null; // or a loading skeleton
-  }
-
   return (
-    <div className="min-h-screen bg-gray-50 py-8 px-4">
-      <div className="max-w-7xl mx-auto space-y-8">
-        {/* Enhanced Header & Creation Section */}
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-8 mb-8">
-          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-8">
-            <div className="flex items-center gap-3 mb-6 lg:mb-0">
-              <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center shadow-lg">
-                <BarChart3 className="w-6 h-6 text-white" />
-              </div>
-              <div>
-                <h1 className="admin-heading-1">Startup Analysis Dashboard</h1>
-                <p className="admin-section-subtitle">Visualize, filter, and analyze startup performance and investments</p>
-              </div>
+    <div className="min-h-screen bg-gray-50 py-10 px-4">
+      <div className="max-w-7xl mx-auto space-y-10">
+        {/* 2. Header Card */}
+        <div className="bg-white rounded-2xl shadow-md border border-gray-200 p-8 flex flex-col md:flex-row md:items-center md:justify-between mb-8">
+          <div className="flex items-center gap-4 mb-4 md:mb-0">
+            <div className="w-14 h-14 bg-blue-100 rounded-xl flex items-center justify-center shadow">
+              <BarChart3 className="w-7 h-7 text-blue-600" />
             </div>
-            <div className="flex flex-col sm:flex-row gap-4 lg:flex-shrink-0 w-full lg:w-auto">
-              {/* Upload Data Section */}
-              <div className="flex flex-col gap-2 w-full sm:w-auto">
-                <Button
-                  onClick={() => document.getElementById('excel-upload')?.click()}
-                  className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-semibold py-3 px-6 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center gap-3 w-full sm:w-auto"
-                >
-                  <Upload className="h-5 w-5" />
-                  Upload Data
-                </Button>
-                <input
-                  id="excel-upload"
-                  type="file"
-                  accept=".xlsx, .xls"
-                  onChange={handleFileUpload}
-                  className="hidden"
-                />
-              </div>
-              {/* Template Download Section */}
-              <div className="flex flex-col gap-2 w-full sm:w-auto">
-                <Select value={selectedTemplate} onValueChange={(value) => {
-                  setSelectedTemplate(value);
-                  handleDownloadTemplate(value);
-                }}>
-                  <SelectTrigger className="bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white font-semibold py-3 px-6 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center gap-3 w-full sm:w-auto border-0">
-                    <Download className="h-5 w-5" />
-                    <span>
-                      {selectedTemplate ?
-                        (selectedTemplate === "incubationSummary" ? "Incubation Summary" :
-                         selectedTemplate === "vcInvestment" ? "VC Investment" :
-                         selectedTemplate === "startupDetails" ? "Startup Details" : "Templates")
-                      : "Download Templates"}
-                    </span>
-                  </SelectTrigger>
-                  <SelectContent className="bg-white border border-gray-200 shadow-xl rounded-xl">
-                    <SelectItem value="incubationSummary" className="hover:bg-gray-50 rounded-lg">
-                      <div className="flex items-center gap-3">
-                        <FileText className="h-4 w-4 text-blue-600" />
-                        <span>Incubation Summary</span>
-                      </div>
-                    </SelectItem>
-                    <SelectItem value="vcInvestment" className="hover:bg-gray-50 rounded-lg">
-                      <div className="flex items-center gap-3">
-                        <FileText className="h-4 w-4 text-green-600" />
-                        <span>VC Investment Details</span>
-                      </div>
-                    </SelectItem>
-                    <SelectItem value="startupDetails" className="hover:bg-gray-50 rounded-lg">
-                      <div className="flex items-center gap-3">
-                        <FileText className="h-4 w-4 text-purple-600" />
-                        <span>Startup Details</span>
-                      </div>
-                    </SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
+            <div>
+              <h2 className="text-2xl font-bold text-gray-900 mb-1">Startup Analysis Dashboard</h2>
+              <p className="text-gray-500">Visualize, filter, and analyze startup performance and investments</p>
             </div>
           </div>
+          <div className="flex gap-4">
+            <Button
+              className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-xl shadow transition flex items-center gap-2"
+              onClick={() => document.getElementById('excel-upload')?.click()}
+            >
+              <Upload className="h-5 w-5" /> Upload Data
+            </Button>
+            <input
+              id="excel-upload"
+              type="file"
+              accept=".xlsx, .xls"
+              onChange={handleFileUpload}
+              className="hidden"
+            />
+            <Select value={selectedTemplate} onValueChange={(value) => { setSelectedTemplate(value); handleDownloadTemplate(value); }}>
+              <SelectTrigger className="bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-6 rounded-xl shadow transition flex items-center gap-2 border-0">
+                <Download className="h-5 w-5" /> Download Templates
+              </SelectTrigger>
+              <SelectContent className="bg-white border border-gray-200 shadow-xl rounded-xl">
+                <SelectItem value="incubationSummary" className="hover:bg-gray-50 rounded-lg">Incubation Summary</SelectItem>
+                <SelectItem value="vcInvestment" className="hover:bg-gray-50 rounded-lg">VC Investment Details</SelectItem>
+                <SelectItem value="startupDetails" className="hover:bg-gray-50 rounded-lg">Startup Details</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
         </div>
-
-        {/* Summary Section */}
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-8">
+        {/* 3. Chart Card */}
+        <Card className="bg-white border border-gray-200 shadow-md rounded-2xl mb-10">
+          <CardContent className="bg-white p-8">
+            <h1 className="text-3xl font-extrabold text-gray-900 mb-6 tracking-tight text-center">Average monthly startup submissions</h1>
+            {loadingSubmissionGraph ? (
+              <div className="h-[300px] flex items-center justify-center text-blue-500">Loading...</div>
+            ) : submissionGraphData.every(d => d.Campus === 0 && d.OffCampus === 0) ? (
+              <div className="h-[300px] flex items-center justify-center text-gray-400 text-lg font-semibold">No startup submission data available for any month.</div>
+            ) : (
+              <ResponsiveContainer width="100%" height={450}>
+                <LineChart data={submissionGraphData} margin={{ top: 50, right: 30, left: 10, bottom: 10 }}>
+                  <CartesianGrid stroke="#bdbdbd" strokeDasharray="3 3" />
+                  <XAxis dataKey="month" tick={{ fill: '#222', fontSize: 15, fontWeight: 600 }} axisLine={{ stroke: '#bdbdbd' }} />
+                  <YAxis
+                    allowDecimals={false}
+                    domain={[0, maxY + 2]}
+                    ticks={Array.from({ length: (maxY + 2) / 2 + 1 }, (_, i) => i * 2)}
+                    tick={{ fill: '#222', fontSize: 15, fontWeight: 600 }}
+                    axisLine={{ stroke: '#bdbdbd' }}
+                    width={50}
+                  />
+                  <Tooltip
+                    contentStyle={{ background: '#fff', borderRadius: 8, border: '1px solid #e5e7eb', color: '#1f2937', fontSize: 14, boxShadow: '0 4px 16px #0001' }}
+                    itemStyle={{ color: '#1f2937', fontWeight: 500 }}
+                    cursor={{ fill: '#f3f4f6' }}
+                  />
+                  <Legend
+                    verticalAlign="top"
+                    align="right"
+                    iconType="plainline"
+                    wrapperStyle={{
+                      background: '#fff',
+                      border: '1px solid #e5e7eb',
+                      borderRadius: 12,
+                      padding: '8px 18px',
+                      marginLeft: 12,
+                      marginTop: 0,
+                      fontWeight: 600,
+                      fontSize: 16,
+                      right: 30,
+                      top: 40, // Move legend bar up
+                      position: 'absolute'
+                    }}
+                  />
+                  <Line type="monotone" dataKey="Campus" name="Campus" stroke="#ff9800" strokeWidth={4} dot={{ r: 6, fill: '#fff', stroke: '#ff9800', strokeWidth: 3 }} activeDot={{ r: 8 }} />
+                  <Line type="monotone" dataKey="OffCampus" name="Off Campus" stroke="#e91e63" strokeWidth={4} dot={{ r: 6, fill: '#fff', stroke: '#e91e63', strokeWidth: 3 }} activeDot={{ r: 8 }} />
+                </LineChart>
+              </ResponsiveContainer>
+            )}
+          </CardContent>
+        </Card>
+        {/* 4. Summary Section */}
+        <div className="bg-white rounded-2xl shadow-md border border-gray-200 p-8 mb-10">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-6 mb-6">
             <div className="space-y-2">
-              <h2 className="admin-heading-3">Performance Overview</h2>
-              <p className="admin-body-small">Track and analyze startup metrics by category</p>
+              <h2 className="text-xl font-bold text-gray-900">Performance Overview</h2>
+              <p className="text-gray-500">Track and analyze startup metrics by category</p>
             </div>
             <div className="relative min-w-[280px]">
               <select
@@ -1068,345 +1225,241 @@ const AnalysisPage = () => {
             </div>
           </div>
         </div>
-
-        {/* Summary Charts */}
-        <motion.div
-          key={selectedSummaryGraph}
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-          className="mb-8"
-        >
-          {selectedSummaryGraph === "" ? (
-            <Card className="bg-white border border-gray-200 shadow-sm rounded-2xl">
-              <CardHeader className="pb-6">
-                <CardTitle className="admin-heading-4">Select a Category</CardTitle>
-                <CardDescription className="admin-body-small">Choose an option from the dropdown above to view analytics</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="h-[400px] flex items-center justify-center text-gray-500 text-lg">
-                  No category selected.
-                </div>
-              </CardContent>
-            </Card>
-          ) : (
-            <Card className="bg-white border border-gray-200 shadow-sm rounded-2xl">
-              <CardHeader className="pb-6">
-                <CardTitle className="admin-heading-4">
-                  {selectedSummaryGraph.replace(/([A-Z])/g, ' $1').replace(/^./, (str) => str.toUpperCase())} Analytics
-                </CardTitle>
-                <CardDescription className="admin-body-small">Data visualization and insights</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <ResponsiveContainer width="100%" height={400}>
-                  <BarChart
-                    layout="vertical"
-                    data={summaryBlocks ? summaryBlocks[selectedSummaryGraph] || [] : (dummyData as any)[selectedSummaryGraph.split(' -')[1]?.toLowerCase() || 'stages'] || []}
-                    margin={{
-                      top: 20,
-                      right: 30,
-                      left: 80,
-                      bottom: 20,
-                    }}
-                    barSize={32}
-                    barCategoryGap={8}
-                  >
-                    <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-                    <XAxis type="number" tick={{ fill: '#6b7280', fontSize: 12 }} axisLine={{ stroke: '#d1d5db' }} />
-                    <YAxis type="category" dataKey="label" tick={{ fill: '#6b7280', fontSize: 12 }} width={120} axisLine={{ stroke: '#d1d5db' }} />
-                    <Tooltip
-                      contentStyle={{ 
-                        background: 'white',
-                        borderRadius: 12,
-                        border: '1px solid #d1d5db',
-                        color: '#1f2937',
-                        fontSize: 14,
-                        boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.1)'
-                      }}
-                      itemStyle={{ color: '#1f2937', fontWeight: 500 }}
-                      formatter={(value: any) => [`${value} items`, 'Count']}
-                      cursor={{ fill: '#f3f4f6' }}
-                    />
-                    <Bar 
-                      dataKey="value" 
-                      fill="#4f46e5" 
-                      radius={[0, 6, 6, 0]}
-                    >
-                      {(summaryBlocks ? summaryBlocks[selectedSummaryGraph] || [] : (dummyData as any)[selectedSummaryGraph.split(' -')[1]?.toLowerCase() || 'stages'] || []).map((entry: { category: string }, index: number) => {
-                        const category = entry.category || 'Default';
-                        return (
-                          <Cell 
-                            key={`cell-${index}`} 
-                            fill={categoryColors[category] || '#4f46e5'}
-                          />
-                        );
-                      })}
-                    </Bar>
-                  </BarChart>
-                </ResponsiveContainer>
-              </CardContent>
-            </Card>
-          )}
-        </motion.div>
-
-        {isLoading ? (
-          <div className="flex justify-center items-center h-64">
-            <div className="animate-spin rounded-full h-12 w-12 border-4 border-blue-500 border-t-transparent"></div>
-          </div>
-        ) : (
-          <>
-            {/* VC Investment Details Table */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.4, duration: 0.5 }}
-              className="mb-12"
-            >
-              <h2 className="text-2xl font-semibold text-gray-900 mb-6">VC Investment Details</h2>
-              <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-x-auto">
-                <table className="min-w-full divide-y divide-gray-200">
-                  <thead>
-                    <tr className="bg-gray-50">
-                      <th className="text-left py-4 px-6 text-gray-900 font-semibold text-sm uppercase tracking-wide">Startup Name</th>
-                      <th className="text-left py-4 px-6 text-gray-900 font-semibold text-sm uppercase tracking-wide">Amount</th>
-                      <th className="text-left py-4 px-6 text-gray-900 font-semibold text-sm uppercase tracking-wide">Organization</th>
-                      <th className="text-left py-4 px-6 text-gray-900 font-semibold text-sm uppercase tracking-wide">Investment Year</th>
-                      <th className="text-left py-4 px-6 text-gray-900 font-semibold text-sm uppercase tracking-wide">Proof Link</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-gray-200">
-                    {vcData.map((investment, index) => (
-                      <tr key={investment.id} className={`${index % 2 === 0 ? 'bg-white' : 'bg-gray-50'} hover:bg-blue-50 transition-colors`}>
-                        <td className="py-4 px-6 text-gray-900 font-medium">
-                          {investment.startupName && investment.startupName.trim() !== '' ? investment.startupName : <span className="text-gray-400">—</span>}
-                        </td>
-                        <td className="py-4 px-6 text-blue-600 font-bold text-lg">
-                          {investment.amount > 0 ? formatAmount(investment.amount) : <span className="text-gray-400">—</span>}
-                        </td>
-                        <td className="py-4 px-6 text-gray-900">
-                          {investment.organization && investment.organization.trim() !== '' ? investment.organization : <span className="text-gray-400">—</span>}
-                        </td>
-                        <td className="py-4 px-6 text-gray-900">
-                          {investment.yearDisplay && investment.yearDisplay.trim() !== '' ? investment.yearDisplay : <span className="text-gray-400">—</span>}
-                        </td>
-                        <td className="py-4 px-6">
-                          {investment.proofLink && investment.proofLink.trim() !== '' ? (
-                            <a
-                              href={investment.proofLink}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="text-blue-600 hover:text-blue-800 transition-colors inline-flex items-center font-medium"
-                            >
-                              View Proof <ExternalLink className="ml-1 w-4 h-4" />
-                            </a>
-                          ) : (
-                            <span className="text-gray-400">—</span>
-                          )}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </motion.div>
-
-            {/* Startup Details Table */}
-            {startupDetails.length > 0 && (
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.6, duration: 0.5 }}
-                className="mb-12"
-              >
-                <h2 className="text-2xl font-semibold text-gray-900 mb-6">Startup Details</h2>
-                <div className="mb-6 grid grid-cols-1 md:grid-cols-5 gap-4">
-                  {/* Search Bar */}
-                  <div className="relative">
-                    <input
-                      type="text"
-                      value={searchTerm}
-                      onChange={(e) => setSearchTerm(e.target.value)}
-                      placeholder="Search startups..."
-                      className="w-full p-3 pl-10 bg-white border border-gray-300 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                    />
-                    <Search className="absolute left-3 top-3.5 h-5 w-5 text-gray-400" />
-                  </div>
-                  {/* Status Filter */}
-                  <div className="relative">
-                    <select
-                      value={filterOptions.status}
-                      onChange={(e) => setFilterOptions(prev => ({ ...prev, status: e.target.value }))}
-                      className="w-full p-3 pl-10 bg-white border border-gray-300 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 appearance-none"
-                    >
-                      {uniqueStatuses.map((status) => (
-                        <option key={status} value={status}>
-                          {status}
-                        </option>
-                      ))}
-                    </select>
-                    <Filter className="absolute left-3 top-3.5 h-5 w-5 text-gray-400" />
-                  </div>
-                  {/* Legal Status Filter */}
-                  <div className="relative">
-                    <select
-                      value={filterOptions.legalStatus}
-                      onChange={(e) => setFilterOptions(prev => ({ ...prev, legalStatus: e.target.value }))}
-                      className="w-full p-3 pl-10 bg-white border border-gray-300 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 appearance-none"
-                    >
-                      {uniqueLegalStatuses.map((status) => (
-                        <option key={status} value={status}>
-                          {status}
-                        </option>
-                      ))}
-                    </select>
-                    <Filter className="absolute left-3 top-3.5 h-5 w-5 text-gray-400" />
-                  </div>
-                  {/* Year Filter */}
-                  <div className="relative">
-                    <select
-                      value={filterYear}
-                      onChange={(e) => setFilterYear(e.target.value === "all" ? "all" : parseInt(e.target.value, 10))}
-                      className="w-full p-3 pl-10 bg-white border border-gray-300 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 appearance-none"
-                    >
-                      <option value="all">All Years</option>
-                      {availableYears.map(year => (
-                        <option key={year} value={year}>{year}</option>
-                      ))}
-                    </select>
-                    <Filter className="absolute left-3 top-2.5 h-5 w-5 text-gray-400" />
-                  </div>
-                  {/* Date Sort */}
-                  <div className="relative">
-                    <select
-                      value={filterOptions.dateSort}
-                      onChange={(e) => setFilterOptions(prev => ({ ...prev, dateSort: e.target.value as 'asc' | 'desc' | 'none' }))}
-                      className="w-full p-3 pl-10 bg-white border border-gray-300 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 appearance-none"
-                    >
-                      <option value="none">Sort by Date</option>
-                      <option value="asc">Oldest First</option>
-                      <option value="desc">Newest First</option>
-                    </select>
-                    <TrendingUp className="absolute left-3 top-3.5 h-5 w-5 text-gray-400" />
-                  </div>
-                </div>
-                <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-x-auto">
-                  <table className="min-w-full divide-y divide-gray-200">
-                    <thead>
-                      <tr className="bg-gray-50">
-                        <th className="text-left py-4 px-6 text-gray-900 font-semibold text-sm uppercase tracking-wide">Serial No.</th>
-                        <th className="text-left py-4 px-6 text-gray-900 font-semibold text-sm uppercase tracking-wide">Company Name</th>
-                        <th className="text-left py-4 px-6 text-gray-900 font-semibold text-sm uppercase tracking-wide">Incubation Date</th>
-                        <th className="text-left py-4 px-6 text-gray-900 font-semibold text-sm uppercase tracking-wide">Status</th>
-                        <th className="text-left py-4 px-6 text-gray-900 font-semibold text-sm uppercase tracking-wide">Legal Status</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-gray-200">
-                      {filterAndGraphStartupDetails.length > 0 ? (
-                        filterAndGraphStartupDetails.map((detail, index) => (
-                          <tr key={index} className={`${index % 2 === 0 ? 'bg-white' : 'bg-gray-50'} hover:bg-blue-50 transition-colors`}>
-                            <td className="py-4 px-6 text-gray-900">
-                              {detail.serialNo && detail.serialNo.trim() !== 'N/A' ? detail.serialNo : <span className="text-gray-400">—</span>}
-                            </td>
-                            <td className="py-4 px-6 text-gray-900 font-medium">
-                              {detail.companyName && detail.companyName.trim() !== 'N/A' ? detail.companyName : <span className="text-gray-400">—</span>}
-                            </td>
-                            <td className="py-4 px-6 text-gray-600">
-                              {detail.incubationDate && detail.incubationDate.trim() !== 'N/A' ? detail.incubationDate : <span className="text-gray-400">—</span>}
-                            </td>
-                            <td className="py-4 px-6">
-                              {detail.status && detail.status.trim() !== 'N/A' ? (
-                                <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusBadgeColors(detail.status)}`}>
-                                  {detail.status}
-                                </span>
-                              ) : (
-                                <span className="text-gray-400">—</span>
-                              )}
-                            </td>
-                            <td className="py-4 px-6">
-                              {detail.legalStatus && detail.legalStatus.trim() !== 'N/A' ? (
-                                <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getLegalStatusBadgeColors(detail.legalStatus)}`}>
-                                  {detail.legalStatus}
-                                </span>
-                              ) : (
-                                <span className="text-gray-400">—</span>
-                              )}
-                            </td>
-                          </tr>
-                        ))
+        {/* 5. Tables Section */}
+        <div className="bg-white rounded-2xl shadow-md border border-gray-200 p-8 mb-10">
+          <h2 className="text-xl font-bold text-gray-900 mb-6">VC Investment Details</h2>
+          <div className="overflow-x-auto rounded-xl">
+            <table className="min-w-full divide-y divide-gray-200 text-sm">
+              <thead className="bg-gray-50">
+                <tr>
+                  <th className="text-left py-4 px-6 text-gray-900 font-semibold text-sm uppercase tracking-wide">Startup Name</th>
+                  <th className="text-left py-4 px-6 text-gray-900 font-semibold text-sm uppercase tracking-wide">Amount</th>
+                  <th className="text-left py-4 px-6 text-gray-900 font-semibold text-sm uppercase tracking-wide">Organization</th>
+                  <th className="text-left py-4 px-6 text-gray-900 font-semibold text-sm uppercase tracking-wide">Investment Year</th>
+                  <th className="text-left py-4 px-6 text-gray-900 font-semibold text-sm uppercase tracking-wide">Proof Link</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-100">
+                {vcData.map((investment, index) => (
+                  <tr key={investment.id} className={`${index % 2 === 0 ? 'bg-white' : 'bg-gray-50'} hover:bg-blue-50 transition-colors`}>
+                    <td className="py-4 px-6 text-gray-900 font-medium">
+                      {investment.startupName && investment.startupName.trim() !== '' ? investment.startupName : <span className="text-gray-400">—</span>}
+                    </td>
+                    <td className="py-4 px-6 text-blue-600 font-bold text-lg">
+                      {investment.amount > 0 ? formatAmount(investment.amount) : <span className="text-gray-400">—</span>}
+                    </td>
+                    <td className="py-4 px-6 text-gray-900">
+                      {investment.organization && investment.organization.trim() !== '' ? investment.organization : <span className="text-gray-400">—</span>}
+                    </td>
+                    <td className="py-4 px-6 text-gray-900">
+                      {investment.yearDisplay && investment.yearDisplay.trim() !== '' ? investment.yearDisplay : <span className="text-gray-400">—</span>}
+                    </td>
+                    <td className="py-4 px-6">
+                      {investment.proofLink && investment.proofLink.trim() !== '' ? (
+                        <a
+                          href={investment.proofLink}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-blue-600 hover:text-blue-800 transition-colors inline-flex items-center font-medium"
+                        >
+                          View Proof <ExternalLink className="ml-1 w-4 h-4" />
+                        </a>
                       ) : (
-                        <tr>
-                          <td colSpan={5} className="py-8 text-center text-gray-500">No startup details found matching the filters.</td>
-                        </tr>
+                        <span className="text-gray-400">—</span>
                       )}
-                    </tbody>
-                  </table>
-                </div>
-              </motion.div>
-            )}
-
-            {/* Professional Modal */}
-            {selectedStartup && (
-              <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-                <motion.div
-                  initial={{ opacity: 0, scale: 0.95 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  exit={{ opacity: 0, scale: 0.95 }}
-                  className="w-full max-w-2xl"
-                >
-                  <Card className="bg-white border border-gray-200 shadow-xl">
-                    <CardHeader>
-                      <CardTitle className="text-2xl font-bold text-gray-900">{selectedStartup.startupName}</CardTitle>
-                      <CardDescription className="text-gray-600">
-                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium mr-2 ${getStatusBadgeColors(selectedStartup.stage)}`}>
-                          {selectedStartup.stage}
-                        </span>
-                        {selectedStartup.sector}
-                      </CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="space-y-6">
-                        <div>
-                          <h3 className="text-sm font-medium text-gray-600 mb-2">Investment Details</h3>
-                          <p className="text-3xl font-bold text-blue-600">
-                            {formatAmount(selectedStartup.amount)}
-                          </p>
-                        </div>
-                        <div>
-                          <h3 className="text-sm font-medium text-gray-600 mb-2">Organization</h3>
-                          <p className="text-gray-900">{selectedStartup.organization || ''}</p>
-                        </div>
-                        <div>
-                          <h3 className="text-sm font-medium text-gray-600 mb-2">Description</h3>
-                          <p className="text-gray-700 leading-relaxed">{selectedStartup.description || ''}</p>
-                        </div>
-                        {selectedStartup.proofLink && (
-                          <div>
-                            <h3 className="text-sm font-medium text-gray-600 mb-2">Proof Link</h3>
-                            <a
-                              href={selectedStartup.proofLink}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="inline-flex items-center gap-2 text-blue-600 hover:text-blue-800 transition-colors"
-                            >
-                              View Proof <ExternalLink className="h-4 w-4" />
-                            </a>
-                          </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+        <div className="bg-white rounded-2xl shadow-md border border-gray-200 p-8">
+          <h2 className="text-xl font-bold text-gray-900 mb-6">Startup Details</h2>
+          <div className="mb-6 grid grid-cols-1 md:grid-cols-5 gap-4">
+            {/* Search Bar */}
+            <div className="relative">
+              <input
+                type="text"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                placeholder="Search startups..."
+                className="w-full p-3 pl-10 bg-white border border-gray-300 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              />
+              <Search className="absolute left-3 top-3.5 h-5 w-5 text-gray-400" />
+            </div>
+            {/* Status Filter */}
+            <div className="relative">
+              <select
+                value={filterOptions.status}
+                onChange={(e) => setFilterOptions(prev => ({ ...prev, status: e.target.value }))}
+                className="w-full p-3 pl-10 bg-white border border-gray-300 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 appearance-none"
+              >
+                {uniqueStatuses.map((status) => (
+                  <option key={status} value={status}>
+                    {status}
+                  </option>
+                ))}
+              </select>
+              <Filter className="absolute left-3 top-3.5 h-5 w-5 text-gray-400" />
+            </div>
+            {/* Legal Status Filter */}
+            <div className="relative">
+              <select
+                value={filterOptions.legalStatus}
+                onChange={(e) => setFilterOptions(prev => ({ ...prev, legalStatus: e.target.value }))}
+                className="w-full p-3 pl-10 bg-white border border-gray-300 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 appearance-none"
+              >
+                {uniqueLegalStatuses.map((status) => (
+                  <option key={status} value={status}>
+                    {status}
+                  </option>
+                ))}
+              </select>
+              <Filter className="absolute left-3 top-3.5 h-5 w-5 text-gray-400" />
+            </div>
+            {/* Year Filter */}
+            <div className="relative">
+              <select
+                value={filterYear}
+                onChange={(e) => setFilterYear(e.target.value === "all" ? "all" : parseInt(e.target.value, 10))}
+                className="w-full p-3 pl-10 bg-white border border-gray-300 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 appearance-none"
+              >
+                <option value="all">All Years</option>
+                {availableYears.map(year => (
+                  <option key={year} value={year}>{year}</option>
+                ))}
+              </select>
+              <Filter className="absolute left-3 top-2.5 h-5 w-5 text-gray-400" />
+            </div>
+            {/* Date Sort */}
+            <div className="relative">
+              <select
+                value={filterOptions.dateSort}
+                onChange={(e) => setFilterOptions(prev => ({ ...prev, dateSort: e.target.value as 'asc' | 'desc' | 'none' }))}
+                className="w-full p-3 pl-10 bg-white border border-gray-300 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 appearance-none"
+              >
+                <option value="none">Sort by Date</option>
+                <option value="asc">Oldest First</option>
+                <option value="desc">Newest First</option>
+              </select>
+              <TrendingUp className="absolute left-3 top-3.5 h-5 w-5 text-gray-400" />
+            </div>
+          </div>
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-x-auto">
+            <table className="min-w-full divide-y divide-gray-200">
+              <thead>
+                <tr className="bg-gray-50">
+                  <th className="text-left py-4 px-6 text-gray-900 font-semibold text-sm uppercase tracking-wide">Serial No.</th>
+                  <th className="text-left py-4 px-6 text-gray-900 font-semibold text-sm uppercase tracking-wide">Company Name</th>
+                  <th className="text-left py-4 px-6 text-gray-900 font-semibold text-sm uppercase tracking-wide">Incubation Date</th>
+                  <th className="text-left py-4 px-6 text-gray-900 font-semibold text-sm uppercase tracking-wide">Status</th>
+                  <th className="text-left py-4 px-6 text-gray-900 font-semibold text-sm uppercase tracking-wide">Legal Status</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-200">
+                {filterAndGraphStartupDetails.length > 0 ? (
+                  filterAndGraphStartupDetails.map((detail, index) => (
+                    <tr key={index} className={`${index % 2 === 0 ? 'bg-white' : 'bg-gray-50'} hover:bg-blue-50 transition-colors`}>
+                      <td className="py-4 px-6 text-gray-900">
+                        {detail.serialNo && detail.serialNo.trim() !== 'N/A' ? detail.serialNo : <span className="text-gray-400">—</span>}
+                      </td>
+                      <td className="py-4 px-6 text-gray-900 font-medium">
+                        {detail.companyName && detail.companyName.trim() !== 'N/A' ? detail.companyName : <span className="text-gray-400">—</span>}
+                      </td>
+                      <td className="py-4 px-6 text-gray-600">
+                        {detail.incubationDate && detail.incubationDate.trim() !== 'N/A' ? detail.incubationDate : <span className="text-gray-400">—</span>}
+                      </td>
+                      <td className="py-4 px-6">
+                        {detail.status && detail.status.trim() !== 'N/A' ? (
+                          <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusBadgeColors(detail.status)}`}>
+                            {detail.status}
+                          </span>
+                        ) : (
+                          <span className="text-gray-400">—</span>
                         )}
+                      </td>
+                      <td className="py-4 px-6">
+                        {detail.legalStatus && detail.legalStatus.trim() !== 'N/A' ? (
+                          <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getLegalStatusBadgeColors(detail.legalStatus)}`}>
+                            {detail.legalStatus}
+                          </span>
+                        ) : (
+                          <span className="text-gray-400">—</span>
+                        )}
+                      </td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan={5} className="py-8 text-center text-gray-500">No startup details found matching the filters.</td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+        {/* Professional Modal */}
+        {selectedStartup && (
+          <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              className="w-full max-w-2xl"
+            >
+              <Card className="bg-white border border-gray-200 shadow-xl">
+                <CardHeader>
+                  <CardTitle className="text-2xl font-bold text-gray-900">{selectedStartup.startupName}</CardTitle>
+                  <CardDescription className="text-gray-600">
+                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium mr-2 ${getStatusBadgeColors(selectedStartup.stage)}`}>
+                      {selectedStartup.stage}
+                    </span>
+                    {selectedStartup.sector}
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-6">
+                    <div>
+                      <h3 className="text-sm font-medium text-gray-600 mb-2">Investment Details</h3>
+                      <p className="text-3xl font-bold text-blue-600">
+                        {formatAmount(selectedStartup.amount)}
+                      </p>
+                    </div>
+                    <div>
+                      <h3 className="text-sm font-medium text-gray-600 mb-2">Organization</h3>
+                      <p className="text-gray-900">{selectedStartup.organization || ''}</p>
+                    </div>
+                    <div>
+                      <h3 className="text-sm font-medium text-gray-600 mb-2">Description</h3>
+                      <p className="text-gray-700 leading-relaxed">{selectedStartup.description || ''}</p>
+                    </div>
+                    {selectedStartup.proofLink && (
+                      <div>
+                        <h3 className="text-sm font-medium text-gray-600 mb-2">Proof Link</h3>
+                        <a
+                          href={selectedStartup.proofLink}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center gap-2 text-blue-600 hover:text-blue-800 transition-colors"
+                        >
+                          View Proof <ExternalLink className="h-4 w-4" />
+                        </a>
                       </div>
-                    </CardContent>
-                    <CardFooter className="border-t border-gray-200">
-                      <button
-                        onClick={() => setSelectedStartup(null)}
-                        className="ml-auto px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-900 rounded-lg transition-colors"
-                      >
-                        Close
-                      </button>
-                    </CardFooter>
-                  </Card>
-                </motion.div>
-              </div>
-            )}
-          </>
+                    )}
+                  </div>
+                </CardContent>
+                <CardFooter className="border-t border-gray-200">
+                  <button
+                    onClick={() => setSelectedStartup(null)}
+                    className="ml-auto px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-900 rounded-lg transition-colors"
+                  >
+                    Close
+                  </button>
+                </CardFooter>
+              </Card>
+            </motion.div>
+          </div>
         )}
       </div>
     </div>

@@ -34,8 +34,8 @@ export function CampusBadge({ status, className = '' }: CampusBadgeProps) {
   const label = status ? (status === 'campus' ? 'Campus' : 'Off-Campus') : 'N/A';
 
   return (
-    <span className={`inline-flex items-center px-3 py-1.5 rounded-lg text-xs font-semibold ${bg} ${text} border ${border} ${className}`}>
-      <Icon className="h-3.5 w-3.5 mr-2" />
+    <span className={`inline-flex items-center px-4 py-1.5 rounded-xl text-xs font-semibold ${bg} ${text} border ${border} shadow-sm ${className}`}>
+      <Icon className="h-4 w-4 mr-2" />
       {label}
     </span>
   );

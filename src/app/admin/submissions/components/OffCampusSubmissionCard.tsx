@@ -103,7 +103,7 @@ export function OffCampusSubmissionCard({
   ].filter(part => part && part.trim()).join('\n\n') || submission.idea || 'No details provided.';
 
   return (
-    <div className="w-full h-full">
+    <div className="w-full h-full" style={{ width: 'calc(100% + 25px)', marginRight: '-25px' }}>
       <Card className="relative h-full bg-white border border-purple-100 shadow-sm hover:shadow-md transition rounded-xl overflow-hidden">
         <CardHeader className="pb-4">
           <div className="flex items-center justify-between">

@@ -58,7 +58,7 @@ export function OnCampusSubmissionCard({
   };
 
   return (
-    <div className="w-full h-full">
+    <div className="w-full h-full" style={{ width: 'calc(100% + 25px)', marginRight: '-25px' }}>
       <Card className="relative h-full bg-white border border-blue-100 shadow-sm hover:shadow-md transition rounded-xl overflow-hidden">
         <CardHeader className="pb-4">
           <div className="flex items-center justify-between">

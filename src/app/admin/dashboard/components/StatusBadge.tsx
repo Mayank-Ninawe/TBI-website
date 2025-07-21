@@ -35,8 +35,8 @@ export function StatusBadge({ status, showDate, className = '' }: StatusBadgePro
 
   return (
     <div className={`flex flex-col gap-1 ${className}`}>
-      <span className={`inline-flex items-center px-3 py-1.5 rounded-lg text-xs font-semibold ${bg} ${text} border ${border}`}>
-        <Icon className="h-3.5 w-3.5 mr-2" />
+      <span className={`inline-flex items-center px-4 py-1.5 rounded-xl text-xs font-semibold ${bg} ${text} border ${border} shadow-sm`}> 
+        <Icon className="h-4 w-4 mr-2" />
         {status.charAt(0).toUpperCase() + status.slice(1)}
       </span>
       {formattedDate && (
