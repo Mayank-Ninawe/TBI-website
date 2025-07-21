@@ -46,6 +46,7 @@ import {
 } from '@/app/actions/mentor-request-actions';
 import type { MentorRequest } from '@/types/mentor-request';
 import { format } from 'date-fns';
+import { useChat } from '@/hooks/useChat';
 
 const statusColors = {
   pending: 'bg-yellow-100 text-yellow-800',
@@ -74,6 +75,8 @@ export default function AdminMentorRequestsPage() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isConfirmDialogOpen, setIsConfirmDialogOpen] = useState(false);
   const { toast } = useToast();
+  const [chatDialogOpen, setChatDialogOpen] = useState(false);
+  const [chatRequestId, setChatRequestId] = useState<string | null>(null);
 
   const fetchRequests = async () => {
     setIsLoading(true);
@@ -395,8 +398,30 @@ export default function AdminMentorRequestsPage() {
                           <p className="text-gray-700 pl-9">{request.adminNotes}</p>
                         </div>
                       )}
+                      <div className="flex flex-wrap sm:flex-nowrap gap-3 mt-4">
+                        <Button
+                          variant="outline"
+                          className="border-blue-200 hover:border-blue-400 bg-white hover:bg-blue-50 text-blue-700 hover:text-blue-800 transition-all duration-200 w-full sm:w-auto rounded-full"
+                          onClick={() => { setChatRequestId(request.id); setChatDialogOpen(true); }}
+                        >
+                          <MessageSquare className="mr-2 h-5 w-5" />
+                          View Conversation
+                        </Button>
+                      </div>
                     </CardContent>
                   </Card>
+                  {/* Chat Dialog */}
+                  {chatRequestId === request.id && (
+                    <Dialog open={chatDialogOpen} onOpenChange={setChatDialogOpen}>
+                      <DialogContent className="max-w-2xl">
+                        <DialogHeader>
+                          <DialogTitle>Mentor-User Conversation</DialogTitle>
+                          <DialogDescription>View the real-time chat between the mentor and user for this request.</DialogDescription>
+                        </DialogHeader>
+                        <AdminChatView chatId={`mentor-user-evaluation-${request.id}`} />
+                      </DialogContent>
+                    </Dialog>
+                  )}
                 </div>
               ))}
             </div>
@@ -535,6 +560,40 @@ export default function AdminMentorRequestsPage() {
             </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialog>
+      </div>
+    </div>
+  );
+}
+
+function AdminChatView({ chatId }: { chatId: string }) {
+  const { messages, loading } = useChat(chatId);
+  return (
+    <div className="flex flex-col space-y-4 mt-4">
+      <div className="h-64 overflow-y-auto border rounded-md p-3 bg-gray-50 mb-2">
+        {loading ? (
+          <div className="text-gray-400 text-center">Loading chat...</div>
+        ) : (
+          messages.length === 0 ? (
+            <div className="text-gray-400 text-center">No messages yet.</div>
+          ) : (
+            messages.map((msg, idx) => (
+              <div
+                key={idx}
+                className={`mb-2 flex ${msg.senderType === "mentor" ? "justify-end" : "justify-start"}`}
+              >
+                <span
+                  className={`px-3 py-2 rounded-lg text-sm max-w-xs break-words ${
+                    msg.senderType === "mentor"
+                      ? "bg-blue-500 text-white"
+                      : "bg-gray-200 text-gray-900"
+                  }`}
+                >
+                  {msg.text}
+                </span>
+              </div>
+            ))
+          )
+        )}
       </div>
     </div>
   );

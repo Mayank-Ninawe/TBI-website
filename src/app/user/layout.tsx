@@ -21,6 +21,7 @@ import {
   Home,
   Menu,
   User,
+  Star, // Add Star icon for Evaluation
 } from "lucide-react";
 import NotificationsPanel from "@/components/ui/notifications-panel";
 import { InnoNexusLogo } from "@/components/icons/innnexus-logo";
@@ -80,7 +81,14 @@ function UserLayoutContent({
       label: "Events",
       icon: <CalendarDays className="h-5 w-5" />,
       disabled: false
-    }, {
+    },
+    {
+      href: "/user/evaluation",
+      label: "Evaluation",
+      icon: <Star className="h-5 w-5" />,
+      disabled: false
+    },
+    {
       href: "/user/settings",
       label: "Profile",
       icon: <User className="h-5 w-5" />,
