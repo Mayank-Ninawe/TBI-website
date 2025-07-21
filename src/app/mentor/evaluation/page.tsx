@@ -3,8 +3,30 @@
 
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from "@/components/ui/card";
 import { ClipboardCheck, Star, TrendingUp, Award } from "lucide-react";
+import { Textarea } from "@/components/ui/textarea";
+import { Button } from "@/components/ui/button";
+import { useState } from "react";
+import { useChat } from '@/hooks/useChat';
 
 export default function MentorEvaluationPage() {
+  // Move questions to a variable for reuse
+  const prerequisiteQuestions = [
+    "Have you completed the assigned tasks from the last session?",
+    "What challenges did you face this week?",
+    "Did you reach out for help when needed?",
+    "What are your goals for the upcoming week?",
+    "Is there any resource or support you need from me?",
+  ];
+
+  // Use shared chatId for both mentor and user
+  const chatId = 'mentor-user-evaluation'; // Replace with dynamic value for real app
+  const { messages, loading, sendMessage, user } = useChat(chatId);
+
+  // Handler to send a message as mentor
+  const sendMentorMessage = (text) => {
+    sendMessage(text, 'mentor');
+  };
+
   return (
     <div className="space-y-8">
       {/* Header Section */}
@@ -67,6 +89,51 @@ export default function MentorEvaluationPage() {
         </Card>
       </div>
 
+      {/* Prerequisite Questions Section */}
+      <Card className="border-gray-200 bg-white shadow-sm">
+        <CardHeader>
+          <CardTitle className="text-lg text-gray-900">Prerequisite Questions</CardTitle>
+          <CardDescription className="text-gray-600">
+            Ask your mentee the following questions to assess their progress:
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <ul className="list-disc pl-6 space-y-2 text-gray-800">
+            {prerequisiteQuestions.map((q, idx) => (
+              <li
+                key={idx}
+                className="cursor-pointer hover:underline hover:text-blue-600 transition-colors"
+                onClick={() => sendMentorMessage(q)}
+                tabIndex={0}
+                onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') sendMentorMessage(q); }}
+                role="button"
+                aria-label={`Send question: ${q}`}
+              >
+                {q}
+              </li>
+            ))}
+          </ul>
+        </CardContent>
+      </Card>
+
+      {/* Chatbox Section */}
+      <Card className="border-gray-200 bg-white shadow-sm">
+        <CardHeader>
+          <CardTitle className="text-lg text-gray-900">Chat with Mentee</CardTitle>
+          <CardDescription className="text-gray-600">
+            Use the chatbox below to communicate with your mentee in real-time.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <ChatBox
+            messages={messages}
+            loading={loading}
+            sendMessage={sendMessage}
+            user={user}
+          />
+        </CardContent>
+      </Card>
+
       {/* Coming Soon Notice */}
       <Card className="border-gray-200 bg-white shadow-sm">
         <CardHeader>
@@ -85,6 +152,59 @@ export default function MentorEvaluationPage() {
           </p>
         </CardContent>
       </Card>
+    </div>
+  );
+}
+
+// Update ChatBox to accept messages and setMessages as props
+function ChatBox({ messages, loading, sendMessage, user }) {
+  const [input, setInput] = useState("");
+
+  const handleSend = () => {
+    if (input.trim() === "") return;
+    sendMessage(input, 'mentor');
+    setInput("");
+  };
+
+  return (
+    <div className="flex flex-col space-y-4">
+      <div className="h-48 overflow-y-auto border rounded-md p-3 bg-gray-50 mb-2">
+        {loading ? (
+          <div className="text-gray-400 text-center">Loading chat...</div>
+        ) : (
+          messages.map((msg, idx) => (
+            <div
+              key={idx}
+              className={`mb-2 flex ${msg.senderType === "mentor" ? "justify-end" : "justify-start"}`}
+            >
+              <span
+                className={`px-3 py-2 rounded-lg text-sm max-w-xs break-words ${
+                  msg.senderType === "mentor"
+                    ? "bg-blue-500 text-white"
+                    : "bg-gray-200 text-gray-900"
+                }`}
+              >
+                {msg.text}
+              </span>
+            </div>
+          ))
+        )}
+      </div>
+      <div className="flex gap-2">
+        <Textarea
+          className="flex-1 min-h-[40px] max-h-24 resize-none"
+          placeholder="Type your message..."
+          value={input}
+          onChange={e => setInput(e.target.value)}
+          onKeyDown={e => {
+            if (e.key === "Enter" && !e.shiftKey) {
+              e.preventDefault();
+              handleSend();
+            }
+          }}
+        />
+        <Button onClick={handleSend} type="button" className="h-10 px-4">Send</Button>
+      </div>
     </div>
   );
 }
